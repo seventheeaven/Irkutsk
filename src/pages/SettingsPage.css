@@ -1,0 +1,152 @@
+.settings-page {
+  padding: 0;
+  min-height: 100vh;
+  background: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.settings-page__header-wrapper {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  z-index: 1;
+}
+
+.settings-page__back {
+  margin: 12px 16px 0 16px;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+}
+
+.settings-page__back:active {
+  opacity: 0.7;
+}
+
+.settings-page__content {
+  padding: 24px 16px 92px 16px;
+}
+
+.settings-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 32px 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.settings-page__section {
+  margin-bottom: 24px;
+}
+
+.settings-page__label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.settings-page__input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.settings-page__input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.settings-page__textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s ease;
+}
+
+.settings-page__textarea:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.settings-page__char-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: #BABABA;
+  margin-top: 4px;
+  text-align: right;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.settings-page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.settings-page__save-btn {
+  width: 100%;
+  padding: 16px;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+}
+
+.settings-page__save-btn:active {
+  opacity: 0.8;
+}
+
+.settings-page__logout-btn {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  color: #FF3B30;
+  border: 1px solid #FF3B30;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: all 0.2s ease;
+}
+
+.settings-page__logout-btn:active {
+  background: #FF3B30;
+  color: #ffffff;
+}
+
+

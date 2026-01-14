@@ -1,0 +1,617 @@
+.my-collections-page {
+  padding: 0;
+  min-height: 100vh;
+  background: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.my-collections-page__bottom-layer {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  z-index: 1;
+}
+
+.my-collections-page__profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 0 92px 0;
+}
+
+.my-collections-page__avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: #D9D9D9;
+  margin-top: 2px;
+}
+
+.my-collections-page__name {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 8px 0 0 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__username {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  margin: 4px 0 0 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.my-collections-page__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.my-collections-page__stat-number {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__stat-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  margin-top: 2px;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__description {
+  width: 100%;
+  max-width: 100%;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  text-align: center;
+  margin: 12px 0 0 0;
+  padding: 0 16px;
+  line-height: 1.6;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.my-collections-page__tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.my-collections-page__tab {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 18px;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: background-color 0.2s ease;
+}
+
+.my-collections-page__tab--active {
+  background: #F5F5F5;
+  color: #1a1a1a;
+}
+
+.my-collections-page__tab:active {
+  opacity: 0.7;
+}
+
+.my-collections-page__collections {
+  width: 100%;
+  padding: 24px 16px 0 16px;
+  box-sizing: border-box;
+  margin-top: 24px;
+}
+
+.my-collections-page__create-btn {
+  width: 100%;
+  padding: 16px;
+  background: #F5F5F5;
+  border: 2px dashed #BABABA;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: all 0.2s ease;
+  margin-bottom: 24px;
+}
+
+.my-collections-page__create-btn:active {
+  background: #E0E0E0;
+  border-color: #999;
+}
+
+.my-collections-page__create-form {
+  background: #F5F5F5;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.my-collections-page__create-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.my-collections-page__create-input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__create-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.my-collections-page__create-cancel,
+.my-collections-page__create-submit {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+}
+
+.my-collections-page__create-cancel {
+  background: transparent;
+  color: #BABABA;
+}
+
+.my-collections-page__create-cancel:active {
+  opacity: 0.7;
+}
+
+.my-collections-page__create-submit {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.my-collections-page__create-submit:active {
+  opacity: 0.8;
+}
+
+.my-collections-page__create-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.my-collections-page__empty-collections {
+  text-align: center;
+  padding: 48px 16px;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.my-collections-page__empty-collections-image {
+  width: 100%;
+  max-width: 250px;
+  height: auto;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+.my-collections-page__empty-collections p {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.my-collections-page__collections-grid {
+  column-count: 2;
+  column-gap: 12px;
+  width: 100%;
+  padding: 0 16px 92px 16px;
+  box-sizing: border-box;
+}
+
+.my-collections-page__collection-card {
+  break-inside: avoid;
+  margin-bottom: 12px;
+  background: transparent;
+  border-radius: 16px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.my-collections-page__collection-image {
+  width: 100%;
+  background: #D9D9D9;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border-radius: 16px;
+  object-fit: cover;
+  display: block;
+}
+
+.my-collections-page__collection-image[src=""] {
+  background: #D9D9D9;
+}
+
+.my-collections-page__collection-description {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 4px 0 0 0;
+  padding-left: 6px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__add-btn {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111111;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: bottom 0.3s ease-in-out, opacity 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.my-collections-page__add-btn--tabbar-hidden {
+  bottom: 18px;
+}
+
+.my-collections-page__add-btn:active {
+  opacity: 0.8;
+}
+
+.my-collections-page__add-icon {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
+.my-collections-page__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.my-collections-page__modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+.my-collections-page__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.my-collections-page__modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #BABABA;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.my-collections-page__modal-close:active {
+  background: #F5F5F5;
+}
+
+.my-collections-page__modal-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.my-collections-page__modal-image-section {
+  margin-bottom: 20px;
+}
+
+.my-collections-page__modal-image-placeholder {
+  width: 100%;
+  height: 200px;
+  background: #F5F5F5;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: 2px dashed #D9D9D9;
+}
+
+.my-collections-page__modal-image-placeholder:active {
+  background: #E0E0E0;
+}
+
+.my-collections-page__modal-image-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.my-collections-page__modal-image-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__modal-image-preview {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.my-collections-page__modal-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-collections-page__modal-image-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #ffffff;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.my-collections-page__modal-image-remove:active {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.my-collections-page__modal-title-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #F5F5F5;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.my-collections-page__modal-title-input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__modal-title-input::placeholder {
+  color: #BABABA;
+}
+
+.my-collections-page__modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #F5F5F5;
+}
+
+.my-collections-page__modal-cancel,
+.my-collections-page__modal-publish {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+}
+
+.my-collections-page__modal-cancel {
+  background: #F5F5F5;
+  color: #1a1a1a;
+}
+
+.my-collections-page__modal-cancel:active {
+  opacity: 0.7;
+}
+
+.my-collections-page__modal-publish {
+  background: #111111;
+  color: #ffffff;
+}
+
+.my-collections-page__modal-publish:active {
+  opacity: 0.8;
+}
+
+.my-collections-page__modal-publish:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.my-collections-page__likes {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  margin-top: 24px;
+}
+
+.my-collections-page__empty-likes {
+  text-align: center;
+  padding: 48px 16px;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__empty-likes p {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.my-collections-page__likes-grid {
+  column-count: 2;
+  column-gap: 12px;
+  width: 100%;
+  padding: 0 16px 92px 16px;
+}
+
+.my-collections-page__like-card {
+  break-inside: avoid;
+  margin-bottom: 12px;
+  background: transparent;
+  border-radius: 16px;
+  overflow: visible;
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.my-collections-page__like-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.my-collections-page__like-image {
+  width: 100%;
+  background: #D9D9D9;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border-radius: 16px;
+  object-fit: cover;
+  display: block;
+}
+
+.my-collections-page__like-image[src=""] {
+  background: #D9D9D9;
+}
+
+.my-collections-page__like-description {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 4px 0 0 0;
+  padding-left: 6px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
