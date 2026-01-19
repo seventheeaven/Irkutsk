@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Header } from '../components/Header';
 import { SmartSearch } from '../components/SmartSearch';
-import { useMenu } from '../contexts/MenuContext';
 import { mockPlaces } from '../data/places';
 import { getIrkutskImages, UnsplashImage } from '../services/imageService';
 import { getRecommendations, Recommendation } from '../services/chatGPTService';
@@ -18,7 +17,6 @@ interface LikedItem {
 }
 
 export const RecommendationsPage = () => {
-  const { isMenuOpen } = useMenu();
   const [images, setImages] = useState<UnsplashImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
