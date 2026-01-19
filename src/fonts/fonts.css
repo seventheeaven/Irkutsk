@@ -75,7 +75,7 @@
 /* Rooftop Run - подключение шрифтов */
 @font-face {
   font-family: 'Rooftop Run';
-  src: url('/font/rooftoprun.ttf') format('truetype');
+  src: url('/fonts/rooftoprun.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -83,7 +83,7 @@
 
 @font-face {
   font-family: 'Rooftop Run';
-  src: url('/font/rooftoprunbold.ttf') format('truetype');
+  src: url('/fonts/rooftoprunbold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
