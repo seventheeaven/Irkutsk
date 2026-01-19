@@ -632,6 +632,11 @@
   height: 400px;
   background: linear-gradient(to bottom, #ffffff 0%, #FFE9BD 100%);
   border-radius: 0 0 56px 56px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 24px;
+  box-sizing: border-box;
 }
 
 .my-collections-page__create-account-content {
@@ -648,10 +653,12 @@
 .my-collections-page__create-account-text {
   font-size: 16px;
   font-weight: 500;
-  color: #BABABA;
-  margin: 0 0 14px 0;
+  color: #111111;
+  margin: 0;
   text-align: center;
   width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
   font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
