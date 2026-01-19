@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMenu } from '../contexts/MenuContext';
 import menuIcon from '../../img/menu_2.svg';
@@ -7,9 +8,38 @@ import './Header.css';
 export const Header = () => {
   const { isMenuOpen, setIsMenuOpen } = useMenu();
   const navigate = useNavigate();
+  const [hasProfile, setHasProfile] = useState(false);
+
+  useEffect(() => {
+    const checkProfile = () => {
+      const savedProfile = localStorage.getItem('userProfile');
+      setHasProfile(!!savedProfile);
+    };
+
+    checkProfile();
+    
+    // Слушаем изменения в localStorage
+    const handleStorageChange = () => {
+      checkProfile();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Проверяем при монтировании и при изменении меню
+    if (isMenuOpen) {
+      checkProfile();
+    }
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isMenuOpen]);
 
   const handleMenuClick = () => {
     setIsMenuOpen(!isMenuOpen);
+    // Проверяем профиль при открытии меню
+    const savedProfile = localStorage.getItem('userProfile');
+    setHasProfile(!!savedProfile);
   };
 
   const handleMenuClose = () => {
@@ -24,6 +54,15 @@ export const Header = () => {
   const handleContactClick = () => {
     window.open('https://t.me/raaisondetre', '_blank');
     handleMenuClose();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('userProfile');
+    setHasProfile(false);
+    handleMenuClose();
+    navigate('/my-collections');
+    // Перезагружаем страницу, чтобы обновить состояние
+    window.location.reload();
   };
 
   return (
@@ -53,6 +92,14 @@ export const Header = () => {
             >
               Связаться с нами
             </button>
+            {hasProfile && (
+              <button 
+                className="header__menu-item"
+                onClick={handleLogout}
+              >
+                Выйти
+              </button>
+            )}
           </div>
         </>
       )}
