@@ -3,7 +3,6 @@ import './Recommendations.css';
 
 interface RecommendationsProps {
   places: Place[];
-  onShowAll?: () => void;
 }
 
 const categoryLabels = [
@@ -21,7 +20,7 @@ const categoryLabels = [
   'на свежем воздухе'
 ];
 
-export const Recommendations = ({ places, onShowAll }: RecommendationsProps) => {
+export const Recommendations = ({ places }: RecommendationsProps) => {
   if (places.length === 0) {
     return null;
   }
