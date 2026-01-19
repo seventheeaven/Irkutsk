@@ -214,6 +214,7 @@ export const MyCollectionsPage = () => {
       <div className="my-collections-page">
         <div className="my-collections-page__create-account">
           <div className="my-collections-page__create-account-gradient">
+            <h1 className="my-collections-page__create-account-title">BY TIME</h1>
             <p className="my-collections-page__create-account-text">
               Сохраняйте места<br />и делитесь своими публикациями
             </p>

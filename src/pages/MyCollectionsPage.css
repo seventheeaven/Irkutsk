@@ -633,10 +633,22 @@
   background: linear-gradient(to bottom, #ffffff 0%, #FFE9BD 100%);
   border-radius: 0 0 56px 56px;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 24px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 56px;
   box-sizing: border-box;
+}
+
+.my-collections-page__create-account-title {
+  font-family: 'Rooftop Run', sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  color: #111111;
+  margin: 0 0 16px 0;
+  text-align: center;
+  text-transform: uppercase;
+  line-height: 1;
 }
 
 .my-collections-page__create-account-content {
@@ -653,7 +665,7 @@
 .my-collections-page__create-account-text {
   font-size: 16px;
   font-weight: 500;
-  color: #BABABA;
+  color: #111111;
   margin: 0;
   text-align: center;
   width: 322px;
