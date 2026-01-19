@@ -821,3 +821,68 @@
   opacity: 0.8;
 }
 
+/* Стили для форм авторизации */
+.my-collections-page__auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.my-collections-page__auth-back-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  cursor: pointer;
+  padding: 8px 0;
+  text-align: left;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+  align-self: flex-start;
+}
+
+.my-collections-page__auth-back-btn:active {
+  opacity: 0.7;
+}
+
+.my-collections-page__auth-phone-form,
+.my-collections-page__auth-code-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.my-collections-page__auth-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  text-align: center;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__auth-input {
+  width: 100%;
+  height: 60px;
+  padding: 0 20px;
+  border: 2px solid #F5F5F5;
+  border-radius: 32px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #111111;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.my-collections-page__auth-input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__auth-input::placeholder {
+  color: #BABABA;
+}
+
