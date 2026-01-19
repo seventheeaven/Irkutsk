@@ -659,7 +659,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .my-collections-page__create-account-form {
@@ -787,7 +787,7 @@
 .my-collections-page__create-account-login-btn {
   width: 100%;
   height: 60px;
-  background: #ffffff;
+  background: #F5F5F5;
   border: 1px solid #B9B9B9;
   border-radius: 32px;
   font-size: 20px;
