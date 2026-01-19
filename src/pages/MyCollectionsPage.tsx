@@ -26,9 +26,17 @@ interface UserProfile {
   avatar?: string;
 }
 
+type AuthStep = 'initial' | 'phone' | 'code';
+type AuthMode = 'register' | 'login';
+
 export const MyCollectionsPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [authStep, setAuthStep] = useState<AuthStep>('initial');
+  const [authMode, setAuthMode] = useState<AuthMode>('register');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [code, setCode] = useState('');
+  const [sentCode, setSentCode] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('collections');
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isTabbarVisible, setIsTabbarVisible] = useState(true);
@@ -194,11 +202,92 @@ export const MyCollectionsPage = () => {
     }
   };
 
-  const handleCreateAccount = () => {
-    // Временная заглушка - создаем профиль по умолчанию
+  // Моковая система для хранения зарегистрированных номеров
+  const getRegisteredPhones = (): string[] => {
+    const phones = localStorage.getItem('registeredPhones');
+    return phones ? JSON.parse(phones) : [];
+  };
+
+  const registerPhone = (phone: string) => {
+    const phones = getRegisteredPhones();
+    if (!phones.includes(phone)) {
+      phones.push(phone);
+      localStorage.setItem('registeredPhones', JSON.stringify(phones));
+    }
+  };
+
+  const isPhoneRegistered = (phone: string): boolean => {
+    return getRegisteredPhones().includes(phone);
+  };
+
+  // Генерация мокового кода (в реальном приложении это будет отправляться через SMS)
+  const generateCode = (): string => {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  };
+
+  const handleRegisterClick = () => {
+    setAuthMode('register');
+    setAuthStep('phone');
+  };
+
+  const handleLoginClick = () => {
+    setAuthMode('login');
+    setAuthStep('phone');
+  };
+
+  const handleBackClick = () => {
+    setAuthStep('initial');
+    setPhoneNumber('');
+    setCode('');
+    setSentCode(null);
+  };
+
+  const handlePhoneSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalizedPhone = phoneNumber.replace(/\D/g, '');
+    
+    if (normalizedPhone.length !== 11) {
+      alert('Введите корректный номер телефона');
+      return;
+    }
+
+    // Проверка для входа
+    if (authMode === 'login') {
+      if (!isPhoneRegistered(normalizedPhone)) {
+        alert('Этот номер не зарегистрирован');
+        return;
+      }
+    }
+
+    // Генерируем и сохраняем код
+    const generatedCode = generateCode();
+    setSentCode(generatedCode);
+    setAuthStep('code');
+    
+    // В реальном приложении здесь будет отправка SMS
+    // Для тестирования выводим код в консоль
+    console.log('Код подтверждения:', generatedCode);
+  };
+
+  const handleCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (code !== sentCode) {
+      alert('Неверный код');
+      return;
+    }
+
+    const normalizedPhone = phoneNumber.replace(/\D/g, '');
+
+    if (authMode === 'register') {
+      // Регистрируем номер
+      registerPhone(normalizedPhone);
+    }
+
+    // Создаем профиль
     const newProfile: UserProfile = {
       name: 'Пользователь',
-      username: '@user',
+      username: `@${normalizedPhone.slice(-4)}`,
       description: '',
       avatar: undefined
     };
@@ -206,6 +295,10 @@ export const MyCollectionsPage = () => {
     localStorage.setItem('userProfile', JSON.stringify(newProfile));
     setProfile(newProfile);
     setHasProfile(true);
+    setAuthStep('initial');
+    setPhoneNumber('');
+    setCode('');
+    setSentCode(null);
   };
 
   // Если профиля нет, показываем форму создания аккаунта
@@ -220,20 +313,84 @@ export const MyCollectionsPage = () => {
             </p>
           </div>
           <div className="my-collections-page__create-account-content">
-            <div className="my-collections-page__create-account-buttons">
-              <button
-                className="my-collections-page__create-account-register-btn"
-                onClick={handleCreateAccount}
-              >
-                Зарегистрироваться
-              </button>
-              <button
-                className="my-collections-page__create-account-login-btn"
-                onClick={handleCreateAccount}
-              >
-                Войти
-              </button>
-            </div>
+            {authStep === 'initial' && (
+              <div className="my-collections-page__create-account-buttons">
+                <button
+                  className="my-collections-page__create-account-register-btn"
+                  onClick={handleRegisterClick}
+                >
+                  Зарегистрироваться
+                </button>
+                <button
+                  className="my-collections-page__create-account-login-btn"
+                  onClick={handleLoginClick}
+                >
+                  Войти
+                </button>
+              </div>
+            )}
+
+            {authStep === 'phone' && (
+              <div className="my-collections-page__auth-form">
+                <button
+                  className="my-collections-page__auth-back-btn"
+                  onClick={handleBackClick}
+                >
+                  ← Назад
+                </button>
+                <form onSubmit={handlePhoneSubmit} className="my-collections-page__auth-phone-form">
+                  <label className="my-collections-page__auth-label">
+                    {authMode === 'register' ? 'Введите номер телефона для регистрации' : 'Введите номер телефона'}
+                  </label>
+                  <input
+                    type="tel"
+                    className="my-collections-page__auth-input"
+                    placeholder="+7 (999) 123-45-67"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="my-collections-page__create-account-register-btn"
+                  >
+                    Продолжить
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {authStep === 'code' && (
+              <div className="my-collections-page__auth-form">
+                <button
+                  className="my-collections-page__auth-back-btn"
+                  onClick={handleBackClick}
+                >
+                  ← Назад
+                </button>
+                <form onSubmit={handleCodeSubmit} className="my-collections-page__auth-code-form">
+                  <label className="my-collections-page__auth-label">
+                    Введите код из SMS
+                  </label>
+                  <input
+                    type="text"
+                    className="my-collections-page__auth-input"
+                    placeholder="0000"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    maxLength={4}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="my-collections-page__create-account-register-btn"
+                    disabled={code.length !== 4}
+                  >
+                    Подтвердить
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>
