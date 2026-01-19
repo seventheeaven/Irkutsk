@@ -216,7 +216,7 @@ export const MyCollectionsPage = () => {
           <div className="my-collections-page__create-account-gradient"></div>
           <div className="my-collections-page__create-account-content">
             <p className="my-collections-page__create-account-text">
-              Сохраняйте места и создавайте свои публикации
+              Сохраняйте места и создавайте свои публикации 📌
             </p>
             <div className="my-collections-page__create-account-buttons">
               <button
