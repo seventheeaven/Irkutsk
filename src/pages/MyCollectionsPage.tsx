@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Header } from '../components/Header';
 import plusIcon from '../../img/plus.svg';
-import collectionsImage from '../../img/подборки.jpg';
+import collectionsImage from '../../img/collections.jpg';
 import './MyCollectionsPage.css';
 
 interface Collection {

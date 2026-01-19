@@ -1,7 +1,7 @@
 import { Header } from '../components/Header';
 import { SmartSearch } from '../components/SmartSearch';
 import { Categories } from '../components/Categories';
-import constructionImage from '../../img/строительные работы.png';
+import constructionImage from '../../img/construction.png';
 import './HomePage.css';
 
 export const HomePage = () => {
