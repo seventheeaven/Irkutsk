@@ -615,3 +615,165 @@
   font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
+/* Стили для формы создания аккаунта */
+.my-collections-page__create-account {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  box-sizing: border-box;
+}
+
+.my-collections-page__create-account-content {
+  width: 100%;
+  max-width: 400px;
+}
+
+.my-collections-page__create-account-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  text-align: center;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__create-account-subtitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  margin: 0 0 32px 0;
+  text-align: center;
+  line-height: 1.5;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__create-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-collections-page__create-account-avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.my-collections-page__create-account-avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #F5F5F5;
+  border: 2px dashed #D9D9D9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.my-collections-page__create-account-avatar-placeholder:active {
+  background: #E0E0E0;
+}
+
+.my-collections-page__create-account-avatar-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.my-collections-page__create-account-avatar-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #BABABA;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__create-account-avatar-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.my-collections-page__create-account-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-collections-page__create-account-avatar-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.my-collections-page__create-account-avatar-remove:active {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.my-collections-page__create-account-input,
+.my-collections-page__create-account-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #F5F5F5;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+  resize: none;
+}
+
+.my-collections-page__create-account-input:focus,
+.my-collections-page__create-account-textarea:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__create-account-input::placeholder,
+.my-collections-page__create-account-textarea::placeholder {
+  color: #BABABA;
+}
+
+.my-collections-page__create-account-submit {
+  width: 100%;
+  padding: 16px;
+  background: #111111;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+  margin-top: 8px;
+}
+
+.my-collections-page__create-account-submit:active {
+  opacity: 0.8;
+}
+
+.my-collections-page__create-account-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

@@ -19,7 +19,21 @@ interface LikedItem {
   address?: string;
 }
 
+interface UserProfile {
+  name: string;
+  username: string;
+  description: string;
+  avatar?: string;
+}
+
 export const MyCollectionsPage = () => {
+  const [hasProfile, setHasProfile] = useState<boolean>(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [accountName, setAccountName] = useState('');
+  const [accountUsername, setAccountUsername] = useState('');
+  const [accountDescription, setAccountDescription] = useState('');
+  const [accountAvatar, setAccountAvatar] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('collections');
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isTabbarVisible, setIsTabbarVisible] = useState(true);
@@ -30,6 +44,23 @@ export const MyCollectionsPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
+
+  // Загружаем профиль из localStorage
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      try {
+        const profileData: UserProfile = JSON.parse(savedProfile);
+        setProfile(profileData);
+        setHasProfile(true);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        setHasProfile(false);
+      }
+    } else {
+      setHasProfile(false);
+    }
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -126,11 +157,12 @@ export const MyCollectionsPage = () => {
     }
   }, [collections.length, likedItems.length]);
 
-  const fullDescription = 'Люблю утренний кофе, пробежки и экспериментировать на кухне. Мечтаю танцевать сальсу! Ищу того, с кем можно будет уютно молчать и весело смеяться, отправляться в спонтанные поездки и открывать новые книги';
   const maxLength = 150;
-  const truncatedDescription = fullDescription.length > maxLength 
-    ? fullDescription.substring(0, maxLength) 
-    : fullDescription;
+  const truncatedDescription = profile?.description 
+    ? (profile.description.length > maxLength 
+        ? profile.description.substring(0, maxLength) 
+        : profile.description)
+    : '';
 
 
   const handleOpenModal = () => {
@@ -167,15 +199,137 @@ export const MyCollectionsPage = () => {
     }
   };
 
+  const handleCloseCreateAccountModal = () => {
+    setAccountName('');
+    setAccountUsername('');
+    setAccountDescription('');
+    setAccountAvatar(null);
+  };
+
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAccountAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateAccount = () => {
+    if (accountName.trim() && accountUsername.trim()) {
+      const newProfile: UserProfile = {
+        name: accountName.trim(),
+        username: accountUsername.trim().startsWith('@') 
+          ? accountUsername.trim() 
+          : `@${accountUsername.trim()}`,
+        description: accountDescription.trim(),
+        avatar: accountAvatar || undefined
+      };
+      
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      setProfile(newProfile);
+      setHasProfile(true);
+      handleCloseCreateAccountModal();
+    }
+  };
+
+  // Если профиля нет, показываем форму создания аккаунта
+  if (!hasProfile) {
+    return (
+      <div className="my-collections-page">
+        <div className="my-collections-page__bottom-layer">
+          <Header />
+        </div>
+        <div className="my-collections-page__create-account">
+          <div className="my-collections-page__create-account-content">
+            <h2 className="my-collections-page__create-account-title">Создайте аккаунт</h2>
+            <p className="my-collections-page__create-account-subtitle">
+              Чтобы сохранять понравившиеся места и создавать публикации
+            </p>
+            
+            <div className="my-collections-page__create-account-form">
+              <div className="my-collections-page__create-account-avatar-section">
+                {accountAvatar ? (
+                  <div className="my-collections-page__create-account-avatar-preview">
+                    <img src={accountAvatar} alt="Avatar" />
+                    <button
+                      className="my-collections-page__create-account-avatar-remove"
+                      onClick={() => setAccountAvatar(null)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    className="my-collections-page__create-account-avatar-placeholder"
+                    onClick={() => avatarInputRef.current?.click()}
+                  >
+                    <span className="my-collections-page__create-account-avatar-icon">📷</span>
+                    <span className="my-collections-page__create-account-avatar-text">Добавить фото</span>
+                  </div>
+                )}
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarSelect}
+                  style={{ display: 'none' }}
+                />
+              </div>
+
+              <input
+                type="text"
+                className="my-collections-page__create-account-input"
+                placeholder="Имя"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                autoFocus
+              />
+
+              <input
+                type="text"
+                className="my-collections-page__create-account-input"
+                placeholder="Имя пользователя (например: @username)"
+                value={accountUsername}
+                onChange={(e) => setAccountUsername(e.target.value)}
+              />
+
+              <textarea
+                className="my-collections-page__create-account-textarea"
+                placeholder="Описание профиля (необязательно)"
+                value={accountDescription}
+                onChange={(e) => setAccountDescription(e.target.value)}
+                rows={4}
+              />
+
+              <button
+                className="my-collections-page__create-account-submit"
+                onClick={handleCreateAccount}
+                disabled={!accountName.trim() || !accountUsername.trim()}
+              >
+                Создать аккаунт
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="my-collections-page">
       <div className="my-collections-page__bottom-layer">
         <Header />
       </div>
       <div className="my-collections-page__profile">
-        <div className="my-collections-page__avatar"></div>
-        <h1 className="my-collections-page__name">Вероника</h1>
-        <p className="my-collections-page__username">@ssstrezh</p>
+        <div 
+          className="my-collections-page__avatar"
+          style={profile?.avatar ? { backgroundImage: `url(${profile.avatar})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+        ></div>
+        <h1 className="my-collections-page__name">{profile?.name || ''}</h1>
+        <p className="my-collections-page__username">{profile?.username || ''}</p>
         <div className="my-collections-page__stats">
           <div className="my-collections-page__stat">
             <div className="my-collections-page__stat-number">0</div>
