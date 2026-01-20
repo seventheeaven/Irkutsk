@@ -640,7 +640,7 @@
   justify-content: flex-start;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .my-collections-page__sign-in-image {
@@ -846,6 +846,29 @@
 
 .my-collections-page__create-account-login-btn:active {
   opacity: 0.8;
+}
+
+/* Стили для Telegram виджета */
+.my-collections-page__telegram-widget-container {
+  width: calc(100% - 32px);
+  position: absolute;
+  top: calc(200px + 100px + 32px + 50px + 72px); /* Та же позиция, что и кнопка "Войти" */
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60px;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.my-collections-page__telegram-widget-container iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 60px !important;
 }
 
 

@@ -41,6 +41,7 @@ export const MyCollectionsPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
+  const telegramWidgetContainerRef = useRef<HTMLDivElement>(null);
 
   // Загружаем профиль из localStorage
   useEffect(() => {
@@ -58,6 +59,74 @@ export const MyCollectionsPage = () => {
       setHasProfile(false);
     }
   }, []);
+
+  // Глобальная функция для обработки авторизации через Telegram
+  useEffect(() => {
+    (window as any).onTelegramAuth = (user: any) => {
+      console.log('Telegram auth successful:', user);
+      
+      // Создаем профиль пользователя из данных Telegram
+      const newProfile: UserProfile = {
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь',
+        username: user.username ? `@${user.username}` : `@user${user.id}`,
+        description: '',
+        avatar: user.photo_url || undefined
+      };
+      
+      // Сохраняем профиль в localStorage
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      
+      // Обновляем состояние
+      setProfile(newProfile);
+      setHasProfile(true);
+    };
+
+    // Очистка при размонтировании
+    return () => {
+      delete (window as any).onTelegramAuth;
+    };
+  }, []);
+
+  // Загрузка Telegram виджета
+  useEffect(() => {
+    if (!hasProfile && telegramWidgetContainerRef.current) {
+      // Небольшая задержка, чтобы убедиться, что DOM обновился
+      const timer = setTimeout(() => {
+        if (telegramWidgetContainerRef.current) {
+          // Очищаем контейнер перед загрузкой
+          telegramWidgetContainerRef.current.innerHTML = '';
+
+          // Создаем скрипт для Telegram виджета
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://telegram.org/js/telegram-widget.js?22';
+          script.setAttribute('data-telegram-login', 'suda_sign_in_bot');
+          script.setAttribute('data-size', 'large');
+          script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+          script.setAttribute('data-request-access', 'write');
+
+          // Обработка загрузки скрипта
+          script.onload = () => {
+            console.log('Telegram widget script loaded successfully');
+          };
+
+          script.onerror = (error) => {
+            console.error('Failed to load Telegram widget script:', error);
+          };
+
+          telegramWidgetContainerRef.current.appendChild(script);
+        }
+      }, 100);
+
+      // Очистка при размонтировании или изменении состояния
+      return () => {
+        clearTimeout(timer);
+        if (telegramWidgetContainerRef.current) {
+          telegramWidgetContainerRef.current.innerHTML = '';
+        }
+      };
+    }
+  }, [hasProfile]);
 
   useEffect(() => {
     let ticking = false;
@@ -197,6 +266,7 @@ export const MyCollectionsPage = () => {
   };
 
 
+
   // Если профиля нет, показываем страницу входа
   if (!hasProfile) {
     return (
@@ -216,13 +286,10 @@ export const MyCollectionsPage = () => {
             <p className="my-collections-page__create-account-text">
               Сохраняйте места<br />и делитесь своими публикациями
             </p>
-            <div className="my-collections-page__create-account-buttons">
-              <button
-                className="my-collections-page__create-account-register-btn"
-              >
-                Войти
-              </button>
-            </div>
+            <div 
+              ref={telegramWidgetContainerRef}
+              className="my-collections-page__telegram-widget-container"
+            />
           </div>
         </div>
       </div>
