@@ -133,13 +133,53 @@ export const MyCollectionsPage = () => {
       script.onerror = () => {
         console.error('Failed to load Telegram widget script');
         if (container) {
-          container.innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Ошибка загрузки виджета Telegram. Убедитесь, что домен добавлен в настройки бота через BotFather (/setdomain).</p>';
+          const currentDomain = window.location.hostname;
+          container.innerHTML = `
+            <div style="padding: 20px; text-align: center;">
+              <p style="color: red; font-weight: 600; margin-bottom: 16px;">Ошибка: Bot domain invalid</p>
+              <p style="color: #111; margin-bottom: 12px; font-size: 14px;">Текущий домен: <strong>${currentDomain}</strong></p>
+              <div style="background: #F5F5F5; padding: 16px; border-radius: 12px; text-align: left; font-size: 14px; color: #111;">
+                <p style="margin: 0 0 12px 0; font-weight: 600;">Как исправить:</p>
+                <ol style="margin: 0; padding-left: 20px;">
+                  <li style="margin-bottom: 8px;">Откройте @BotFather в Telegram</li>
+                  <li style="margin-bottom: 8px;">Отправьте команду <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">/setdomain</code></li>
+                  <li style="margin-bottom: 8px;">Выберите бота <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">@suda_sign_in_bot</code></li>
+                  <li style="margin-bottom: 8px;">Введите домен: <strong>${currentDomain}</strong></li>
+                  <li style="margin-bottom: 0;">Без http://, https://, www и слешей в конце</li>
+                </ol>
+              </div>
+            </div>
+          `;
         }
       };
 
       // Проверка успешной загрузки
       script.onload = () => {
         console.log('Telegram widget script loaded successfully');
+        
+        // Проверяем через небольшую задержку, появилась ли ошибка виджета
+        setTimeout(() => {
+          const widgetError = container.querySelector('[style*="color: red"], [style*="error"], .tgme_widget_error');
+          if (widgetError || container.textContent?.includes('invalid') || container.textContent?.includes('domain')) {
+            const currentDomain = window.location.hostname;
+            container.innerHTML = `
+              <div style="padding: 20px; text-align: center;">
+                <p style="color: red; font-weight: 600; margin-bottom: 16px;">Ошибка: Bot domain invalid</p>
+                <p style="color: #111; margin-bottom: 12px; font-size: 14px;">Текущий домен: <strong>${currentDomain}</strong></p>
+                <div style="background: #F5F5F5; padding: 16px; border-radius: 12px; text-align: left; font-size: 14px; color: #111;">
+                  <p style="margin: 0 0 12px 0; font-weight: 600;">Как исправить:</p>
+                  <ol style="margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Откройте @BotFather в Telegram</li>
+                    <li style="margin-bottom: 8px;">Отправьте команду <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">/setdomain</code></li>
+                    <li style="margin-bottom: 8px;">Выберите бота <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">@suda_sign_in_bot</code></li>
+                    <li style="margin-bottom: 8px;">Введите домен: <strong>${currentDomain}</strong></li>
+                    <li style="margin-bottom: 0;">Без http://, https://, www и слешей в конце</li>
+                  </ol>
+                </div>
+              </div>
+            `;
+          }
+        }, 1000);
       };
       
       container.appendChild(script);
