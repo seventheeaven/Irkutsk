@@ -946,6 +946,83 @@
   line-height: 1.5;
 }
 
+/* Стили для формы настройки профиля */
+.my-collections-page__profile-setup-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 100px auto 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.my-collections-page__profile-setup-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111111;
+  text-align: center;
+  margin: 0 0 8px 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__profile-setup-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #BABABA;
+  text-align: center;
+  margin: 0 0 32px 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__profile-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.my-collections-page__profile-setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-collections-page__profile-setup-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__profile-setup-input {
+  width: 100%;
+  height: 60px;
+  padding: 0 20px;
+  border: 2px solid #F5F5F5;
+  border-radius: 32px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #111111;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.my-collections-page__profile-setup-input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__profile-setup-input::placeholder {
+  color: #BABABA;
+}
+
+.my-collections-page__profile-setup-hint {
+  font-size: 14px;
+  font-weight: 400;
+  color: #BABABA;
+  margin: 0;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
 /* Стили для форм авторизации (старые, для формы кода) */
 .my-collections-page__auth-form {
   width: 100%;

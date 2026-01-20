@@ -28,7 +28,7 @@ interface UserProfile {
   avatar?: string;
 }
 
-type AuthStep = 'initial' | 'phone' | 'code';
+type AuthStep = 'initial' | 'phone' | 'code' | 'profileSetup';
 
 export const MyCollectionsPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean>(false);
@@ -37,6 +37,9 @@ export const MyCollectionsPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [code, setCode] = useState('');
   const [sentCode, setSentCode] = useState<string | null>(null);
+  const [telegramUser, setTelegramUser] = useState<any>(null); // Временное хранение данных Telegram
+  const [profileName, setProfileName] = useState('');
+  const [profileUsername, setProfileUsername] = useState('');
   const [activeTab, setActiveTab] = useState('collections');
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isTabbarVisible, setIsTabbarVisible] = useState(true);
@@ -105,9 +108,6 @@ export const MyCollectionsPage = () => {
       console.log('User ID:', user?.id);
       console.log('User first_name:', user?.first_name);
       
-      // Показываем визуальное уведомление
-      alert('Авторизация получена! Сохраняю профиль...');
-      
       if (!user) {
         console.error('No user data received from Telegram');
         alert('Ошибка: данные пользователя не получены. Попробуйте еще раз.');
@@ -121,36 +121,25 @@ export const MyCollectionsPage = () => {
       }
       
       try {
-        // Создаем профиль из данных Telegram
-        const newProfile: UserProfile = {
-          name: (user.first_name || '') + (user.last_name ? ' ' + user.last_name : ''),
-          username: user.username ? `@${user.username}` : `@user${user.id}`,
-          description: '',
-          avatar: user.photo_url || undefined
-        };
+        console.log('Telegram user data received:', user);
         
-        console.log('Creating profile:', newProfile);
+        // Сохраняем данные Telegram пользователя во временное состояние
+        setTelegramUser(user);
         
-        // Сохраняем профиль
-        localStorage.setItem('userProfile', JSON.stringify(newProfile));
-        console.log('Profile saved to localStorage');
+        // Устанавливаем значения по умолчанию из Telegram
+        const defaultName = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
+        const defaultUsername = user.username ? `@${user.username}` : `@user${user.id}`;
         
-        // Обновляем состояние через refs, чтобы гарантировать доступность функций
-        setProfileRef.current(newProfile);
-        setHasProfileRef.current(true);
-        setAuthStepRef.current('initial');
+        setProfileName(defaultName);
+        setProfileUsername(defaultUsername);
         
-        console.log('State updated successfully');
-        console.log('User profile saved successfully');
+        // Переходим на шаг настройки профиля
+        setAuthStepRef.current('profileSetup');
         
-        // Показываем успешное сообщение
-        alert('Авторизация успешна! Перезагружаю страницу...');
-        
-        // Перезагружаем страницу для применения изменений
-        window.location.href = '/my-collections';
+        console.log('Moving to profile setup step');
       } catch (error) {
-        console.error('Error saving user profile:', error);
-        alert('Ошибка при сохранении профиля: ' + (error as Error).message);
+        console.error('Error processing Telegram auth:', error);
+        alert('Ошибка при обработке авторизации: ' + (error as Error).message);
       }
     };
 
@@ -469,10 +458,64 @@ export const MyCollectionsPage = () => {
   };
 
   const handleBackClick = () => {
-    setAuthStep('initial');
-    setPhoneNumber('');
-    setCode('');
-    setSentCode(null);
+    if (authStep === 'profileSetup') {
+      // При возврате с настройки профиля возвращаемся на страницу авторизации
+      setAuthStep('phone');
+      setTelegramUser(null);
+      setProfileName('');
+      setProfileUsername('');
+    } else {
+      setAuthStep('initial');
+      setPhoneNumber('');
+      setCode('');
+      setSentCode(null);
+    }
+  };
+
+  const handleProfileSetupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!profileName.trim()) {
+      alert('Введите имя');
+      return;
+    }
+    
+    if (!profileUsername.trim()) {
+      alert('Введите username');
+      return;
+    }
+    
+    // Убираем @ если пользователь его ввел
+    const cleanUsername = profileUsername.replace(/^@/, '');
+    
+    try {
+      // Создаем профиль из введенных данных
+      const newProfile: UserProfile = {
+        name: profileName.trim(),
+        username: `@${cleanUsername}`,
+        description: '',
+        avatar: telegramUser?.photo_url || undefined
+      };
+      
+      console.log('Creating profile from form:', newProfile);
+      
+      // Сохраняем профиль
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      console.log('Profile saved to localStorage');
+      
+      // Обновляем состояние
+      setProfile(newProfile);
+      setHasProfile(true);
+      setAuthStep('initial');
+      setTelegramUser(null);
+      setProfileName('');
+      setProfileUsername('');
+      
+      console.log('Profile setup completed successfully');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Ошибка при сохранении профиля: ' + (error as Error).message);
+    }
   };
 
 
@@ -510,6 +553,62 @@ export const MyCollectionsPage = () => {
 
   // Если профиля нет, показываем форму создания аккаунта или страницу авторизации
   if (!hasProfile) {
+    // Страница настройки профиля (после авторизации через Telegram)
+    if (authStep === 'profileSetup') {
+      return (
+        <div className="my-collections-page">
+          <div className="my-collections-page__auth-page">
+            <button
+              className="my-collections-page__auth-back-btn"
+              onClick={handleBackClick}
+            >
+              ← Назад
+            </button>
+            <div className="my-collections-page__profile-setup-container">
+              <h2 className="my-collections-page__profile-setup-title">Настройка профиля</h2>
+              <p className="my-collections-page__profile-setup-subtitle">
+                Введите ваше имя и username
+              </p>
+              <form onSubmit={handleProfileSetupSubmit} className="my-collections-page__profile-setup-form">
+                <div className="my-collections-page__profile-setup-field">
+                  <label className="my-collections-page__profile-setup-label">Имя</label>
+                  <input
+                    type="text"
+                    className="my-collections-page__profile-setup-input"
+                    placeholder="Введите ваше имя"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="my-collections-page__profile-setup-field">
+                  <label className="my-collections-page__profile-setup-label">Username</label>
+                  <input
+                    type="text"
+                    className="my-collections-page__profile-setup-input"
+                    placeholder="username (без @)"
+                    value={profileUsername.replace(/^@/, '')}
+                    onChange={(e) => setProfileUsername(e.target.value)}
+                    required
+                  />
+                  <p className="my-collections-page__profile-setup-hint">
+                    Ваш username будет отображаться как @{profileUsername.replace(/^@/, '') || 'username'}
+                  </p>
+                </div>
+                <button
+                  type="submit"
+                  className="my-collections-page__create-account-register-btn"
+                >
+                  Сохранить
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Страница авторизации (отдельный экран)
     if (authStep === 'phone') {
       return (
