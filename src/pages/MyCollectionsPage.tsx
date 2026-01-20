@@ -73,25 +73,33 @@ export const MyCollectionsPage = () => {
       
       if (!user) {
         console.error('No user data received from Telegram');
+        alert('Ошибка авторизации. Попробуйте еще раз.');
         return;
       }
       
-      // Создаем профиль из данных Telegram
-      const newProfile: UserProfile = {
-        name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
-        username: user.username ? `@${user.username}` : `@user${user.id}`,
-        description: '',
-        avatar: user.photo_url
-      };
-      
-      // Сохраняем профиль
-      localStorage.setItem('userProfile', JSON.stringify(newProfile));
-      
-      // Обновляем состояние - React автоматически перерендерит компонент
-      // и покажет главную страницу вместо страницы авторизации
-      setProfile(newProfile);
-      setHasProfile(true);
-      setAuthStep('initial');
+      try {
+        // Создаем профиль из данных Telegram
+        const newProfile: UserProfile = {
+          name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+          username: user.username ? `@${user.username}` : `@user${user.id}`,
+          description: '',
+          avatar: user.photo_url
+        };
+        
+        // Сохраняем профиль
+        localStorage.setItem('userProfile', JSON.stringify(newProfile));
+        
+        // Обновляем состояние - React автоматически перерендерит компонент
+        // и покажет главную страницу вместо страницы авторизации
+        setProfile(newProfile);
+        setHasProfile(true);
+        setAuthStep('initial');
+        
+        console.log('User profile saved successfully');
+      } catch (error) {
+        console.error('Error saving user profile:', error);
+        alert('Ошибка при сохранении профиля. Попробуйте еще раз.');
+      }
     };
 
     return () => {
