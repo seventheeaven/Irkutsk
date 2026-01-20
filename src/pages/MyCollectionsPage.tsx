@@ -159,7 +159,16 @@ export const MyCollectionsPage = () => {
         
         // Проверяем через небольшую задержку, появилась ли ошибка виджета
         setTimeout(() => {
+          console.log('Checking widget state...');
+          console.log('Container content:', container.innerHTML);
+          console.log('Container text:', container.textContent);
+          
           const widgetError = container.querySelector('[style*="color: red"], [style*="error"], .tgme_widget_error');
+          const widgetButton = container.querySelector('iframe, .tgme_widget_login_button, button');
+          
+          console.log('Widget error found:', !!widgetError);
+          console.log('Widget button found:', !!widgetButton);
+          
           if (widgetError || container.textContent?.includes('invalid') || container.textContent?.includes('domain')) {
             const currentDomain = window.location.hostname;
             container.innerHTML = `
@@ -178,8 +187,12 @@ export const MyCollectionsPage = () => {
                 </div>
               </div>
             `;
+          } else if (!widgetButton) {
+            console.warn('Telegram widget button not found after loading');
+          } else {
+            console.log('Telegram widget loaded successfully, button is visible');
           }
-        }, 1000);
+        }, 2000);
       };
       
       container.appendChild(script);
