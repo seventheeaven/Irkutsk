@@ -75,6 +75,24 @@ export const MyCollectionsPage = () => {
     } else {
       setHasProfile(false);
     }
+    
+    // Проверяем, есть ли данные авторизации в URL (Telegram может передавать через URL параметры)
+    const urlParams = new URLSearchParams(window.location.search);
+    const telegramAuth = urlParams.get('tgAuthResult');
+    if (telegramAuth) {
+      console.log('=== TELEGRAM AUTH DATA IN URL ===');
+      console.log('URL params:', telegramAuth);
+      try {
+        const authData = JSON.parse(decodeURIComponent(telegramAuth));
+        console.log('Parsed auth data:', authData);
+        // Обрабатываем данные авторизации из URL
+        if (authData.user) {
+          (window as any).onTelegramAuth?.(authData.user);
+        }
+      } catch (e) {
+        console.error('Error parsing URL auth data:', e);
+      }
+    }
   }, []);
 
   // Глобальная функция для обработки авторизации Telegram (должна быть объявлена ДО загрузки виджета)
@@ -146,12 +164,29 @@ export const MyCollectionsPage = () => {
       console.log('onTelegramAuth function:', (window as any).onTelegramAuth);
       console.log('Current URL:', window.location.href);
       console.log('Current domain:', window.location.hostname);
+      console.log('URL params:', window.location.search);
     };
+    
+    // Проверяем, не пришли ли мы сюда после авторизации в Telegram
+    // Иногда Telegram передает данные через postMessage
+    window.addEventListener('message', function(event) {
+      console.log('=== MESSAGE EVENT RECEIVED ===');
+      console.log('Origin:', event.origin);
+      console.log('Data:', event.data);
+      if (event.origin === 'https://oauth.telegram.org' && event.data && event.data.type === 'auth') {
+        console.log('Telegram auth message received!');
+        if (event.data.user) {
+          telegramAuthHandler(event.data.user);
+        }
+      }
+    });
     
     // Логируем, что функция объявлена
     console.log('=== TELEGRAM AUTH FUNCTION DECLARED ===');
     console.log('Function type:', typeof (window as any).onTelegramAuth);
     console.log('Window object has onTelegramAuth:', 'onTelegramAuth' in window);
+    console.log('Current URL:', window.location.href);
+    console.log('Current domain:', window.location.hostname);
 
     return () => {
       // НЕ удаляем функцию при размонтировании, так как она нужна для виджета
