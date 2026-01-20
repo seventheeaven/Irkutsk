@@ -79,22 +79,56 @@ export const MyCollectionsPage = () => {
       setHasProfile(false);
     }
     
-    // Проверяем, есть ли данные авторизации в URL (Telegram может передавать через URL параметры)
+    // Проверяем, есть ли данные авторизации в URL (Telegram передает через URL параметры при использовании data-auth-url)
     const urlParams = new URLSearchParams(window.location.search);
-    const telegramAuth = urlParams.get('tgAuthResult');
-    if (telegramAuth) {
+    const telegramId = urlParams.get('id');
+    const telegramFirstName = urlParams.get('first_name');
+    const telegramLastName = urlParams.get('last_name');
+    const telegramUsername = urlParams.get('username');
+    const telegramPhotoUrl = urlParams.get('photo_url');
+    const telegramAuthDate = urlParams.get('auth_date');
+    const telegramHash = urlParams.get('hash');
+    
+    if (telegramId && telegramHash) {
       console.log('=== TELEGRAM AUTH DATA IN URL ===');
-      console.log('URL params:', telegramAuth);
-      try {
-        const authData = JSON.parse(decodeURIComponent(telegramAuth));
-        console.log('Parsed auth data:', authData);
-        // Обрабатываем данные авторизации из URL
-        if (authData.user) {
-          (window as any).onTelegramAuth?.(authData.user);
-        }
-      } catch (e) {
-        console.error('Error parsing URL auth data:', e);
+      console.log('URL params:', {
+        id: telegramId,
+        first_name: telegramFirstName,
+        last_name: telegramLastName,
+        username: telegramUsername,
+        photo_url: telegramPhotoUrl,
+        auth_date: telegramAuthDate,
+        hash: telegramHash
+      });
+      
+      // Создаем объект пользователя из URL параметров
+      const userFromUrl = {
+        id: parseInt(telegramId),
+        first_name: telegramFirstName || '',
+        last_name: telegramLastName || '',
+        username: telegramUsername || '',
+        photo_url: telegramPhotoUrl || '',
+        auth_date: telegramAuthDate ? parseInt(telegramAuthDate) : Date.now(),
+        hash: telegramHash
+      };
+      
+      console.log('Processing user from URL:', userFromUrl);
+      
+      // Обрабатываем данные авторизации из URL
+      if ((window as any).onTelegramAuth) {
+        (window as any).onTelegramAuth(userFromUrl);
+      } else {
+        // Если функция еще не объявлена, сохраняем данные и обработаем позже
+        console.log('onTelegramAuth not ready yet, storing user data');
+        setTimeout(() => {
+          if ((window as any).onTelegramAuth) {
+            (window as any).onTelegramAuth(userFromUrl);
+          }
+        }, 1000);
       }
+      
+      // Очищаем URL параметры
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -214,7 +248,13 @@ export const MyCollectionsPage = () => {
       script.setAttribute('data-size', 'large');
       script.setAttribute('data-userpic', 'false');
       script.setAttribute('data-request-access', 'write');
-      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      
+      // Используем оба способа получения данных: callback и redirect URL
+      const currentUrl = window.location.origin + window.location.pathname;
+      script.setAttribute('data-auth-url', currentUrl); // Redirect способ
+      script.setAttribute('data-onauth', 'onTelegramAuth(user)'); // Callback способ
+      
+      console.log('Widget auth URL:', currentUrl);
       
       console.log('Widget script attributes set');
       console.log('data-telegram-login:', script.getAttribute('data-telegram-login'));
