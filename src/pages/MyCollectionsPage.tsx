@@ -63,8 +63,6 @@ export const MyCollectionsPage = () => {
   // Глобальная функция для обработки авторизации через Telegram
   useEffect(() => {
     (window as any).onTelegramAuth = (user: any) => {
-      console.log('Telegram auth successful:', user);
-      
       // Создаем профиль пользователя из данных Telegram
       const newProfile: UserProfile = {
         name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь',
@@ -106,10 +104,6 @@ export const MyCollectionsPage = () => {
           script.setAttribute('data-request-access', 'write');
 
           // Обработка загрузки скрипта
-          script.onload = () => {
-            console.log('Telegram widget script loaded successfully');
-          };
-
           script.onerror = (error) => {
             console.error('Failed to load Telegram widget script:', error);
           };
