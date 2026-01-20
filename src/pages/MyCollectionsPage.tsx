@@ -47,6 +47,18 @@ export const MyCollectionsPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
+  
+  // Refs для хранения функций setState, чтобы они были доступны в глобальной функции onTelegramAuth
+  const setProfileRef = useRef(setProfile);
+  const setHasProfileRef = useRef(setHasProfile);
+  const setAuthStepRef = useRef(setAuthStep);
+  
+  // Обновляем refs при изменении функций
+  useEffect(() => {
+    setProfileRef.current = setProfile;
+    setHasProfileRef.current = setHasProfile;
+    setAuthStepRef.current = setAuthStep;
+  }, []);
 
   // Загружаем профиль из localStorage
   useEffect(() => {
@@ -69,7 +81,8 @@ export const MyCollectionsPage = () => {
   useEffect(() => {
     // Объявляем глобальную функцию для обработки авторизации
     (window as any).onTelegramAuth = function (user: any) {
-      console.log('Telegram user authenticated:', user);
+      console.log('=== Telegram Auth Callback Called ===');
+      console.log('User data:', user);
       
       if (!user) {
         console.error('No user data received from Telegram');
@@ -86,20 +99,33 @@ export const MyCollectionsPage = () => {
           avatar: user.photo_url
         };
         
+        console.log('Creating profile:', newProfile);
+        
         // Сохраняем профиль
         localStorage.setItem('userProfile', JSON.stringify(newProfile));
+        console.log('Profile saved to localStorage');
         
-        // Обновляем состояние - React автоматически перерендерит компонент
-        // и покажет главную страницу вместо страницы авторизации
-        setProfile(newProfile);
-        setHasProfile(true);
-        setAuthStep('initial');
+        // Обновляем состояние через refs, чтобы гарантировать доступность функций
+        setProfileRef.current(newProfile);
+        setHasProfileRef.current(true);
+        setAuthStepRef.current('initial');
         
+        console.log('State updated successfully');
         console.log('User profile saved successfully');
+        
+        // Перезагружаем страницу для применения изменений
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } catch (error) {
         console.error('Error saving user profile:', error);
         alert('Ошибка при сохранении профиля. Попробуйте еще раз.');
       }
+    };
+
+    // Также добавляем функцию в window для отладки
+    (window as any).checkTelegramAuth = function() {
+      console.log('onTelegramAuth function exists:', typeof (window as any).onTelegramAuth);
     };
 
     return () => {
