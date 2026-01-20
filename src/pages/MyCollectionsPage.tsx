@@ -29,13 +29,11 @@ interface UserProfile {
 }
 
 type AuthStep = 'initial' | 'phone' | 'code';
-type AuthMode = 'register' | 'login';
 
 export const MyCollectionsPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authStep, setAuthStep] = useState<AuthStep>('initial');
-  const [authMode, setAuthMode] = useState<AuthMode>('register');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [code, setCode] = useState('');
   const [sentCode, setSentCode] = useState<string | null>(null);
@@ -227,13 +225,7 @@ export const MyCollectionsPage = () => {
     return Math.floor(1000 + Math.random() * 9000).toString();
   };
 
-  const handleRegisterClick = () => {
-    setAuthMode('register');
-    setAuthStep('phone');
-  };
-
   const handleLoginClick = () => {
-    setAuthMode('login');
     setAuthStep('phone');
   };
 
@@ -253,13 +245,8 @@ export const MyCollectionsPage = () => {
       return;
     }
 
-    // Проверка для входа
-    if (authMode === 'login') {
-      if (!isPhoneRegistered(normalizedPhone)) {
-        alert('Этот номер не зарегистрирован');
-        return;
-      }
-    }
+    // При входе автоматически регистрируем номер, если он не зарегистрирован
+    // (первый вход = регистрация)
 
     // Генерируем и сохраняем код
     const generatedCode = generateCode();
@@ -281,8 +268,8 @@ export const MyCollectionsPage = () => {
 
     const normalizedPhone = phoneNumber.replace(/\D/g, '');
 
-    if (authMode === 'register') {
-      // Регистрируем номер
+    // Регистрируем номер, если он еще не зарегистрирован
+    if (!isPhoneRegistered(normalizedPhone)) {
       registerPhone(normalizedPhone);
     }
 
@@ -345,7 +332,7 @@ export const MyCollectionsPage = () => {
                 </button>
                 <form onSubmit={handlePhoneSubmit} className="my-collections-page__auth-phone-form">
                   <label className="my-collections-page__auth-label">
-                    {authMode === 'register' ? 'Введите номер телефона для регистрации' : 'Введите номер телефона'}
+                    Введите номер телефона
                   </label>
                   <input
                     type="tel"
