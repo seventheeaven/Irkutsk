@@ -882,13 +882,29 @@
 .my-collections-page__telegram-login-container {
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  gap: 20px;
   position: absolute;
   top: calc(200px + 100px + 32px + 50px + 72px); /* Та же позиция, что и кнопка "Войти" */
   left: 16px;
   right: 16px;
   box-sizing: border-box;
+}
+
+.my-collections-page__auth-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  text-align: center;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  margin: 0;
+}
+
+#telegram-login {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 /* Стили для форм авторизации (старые, для формы кода) */
