@@ -65,46 +65,53 @@ export const MyCollectionsPage = () => {
     }
   }, []);
 
+  // Глобальная функция для обработки авторизации Telegram (должна быть объявлена до загрузки виджета)
+  useEffect(() => {
+    // Объявляем глобальную функцию для обработки авторизации
+    (window as any).onTelegramAuth = function (user: any) {
+      console.log('Telegram user authenticated:', user);
+      
+      if (!user) {
+        console.error('No user data received from Telegram');
+        return;
+      }
+      
+      // Создаем профиль из данных Telegram
+      const newProfile: UserProfile = {
+        name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+        username: user.username ? `@${user.username}` : `@user${user.id}`,
+        description: '',
+        avatar: user.photo_url
+      };
+      
+      // Сохраняем профиль
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      
+      // Обновляем состояние - React автоматически перерендерит компонент
+      // и покажет главную страницу вместо страницы авторизации
+      setProfile(newProfile);
+      setHasProfile(true);
+      setAuthStep('initial');
+    };
+
+    return () => {
+      // Не удаляем функцию при размонтировании, так как она нужна для виджета
+    };
+  }, []);
+
   // Загружаем Telegram Widget для авторизации
   useEffect(() => {
     if (authStep === 'phone' && !hasProfile) {
-      // Очищаем предыдущий виджет, если есть
       const container = document.getElementById('telegram-login');
       if (!container) {
         console.error('Telegram login container not found');
         return;
       }
 
+      // Очищаем контейнер
       container.innerHTML = '';
 
-      // Глобальная функция для обработки авторизации
-      (window as any).onTelegramAuth = function (user: any) {
-        console.log('Telegram user authenticated:', user);
-        
-        if (!user) {
-          console.error('No user data received from Telegram');
-          return;
-        }
-        
-        // Создаем профиль из данных Telegram
-        const newProfile: UserProfile = {
-          name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
-          username: user.username ? `@${user.username}` : `@user${user.id}`,
-          description: '',
-          avatar: user.photo_url
-        };
-        
-        // Сохраняем профиль
-        localStorage.setItem('userProfile', JSON.stringify(newProfile));
-        
-        // Обновляем состояние - React автоматически перерендерит компонент
-        // и покажет главную страницу вместо страницы авторизации
-        setProfile(newProfile);
-        setHasProfile(true);
-        setAuthStep('initial');
-      };
-
-      // Создаем скрипт виджета
+      // Создаем скрипт виджета согласно официальной документации Telegram
       const script = document.createElement('script');
       script.src = 'https://telegram.org/js/telegram-widget.js?22';
       script.async = true;
@@ -118,7 +125,7 @@ export const MyCollectionsPage = () => {
       script.onerror = () => {
         console.error('Failed to load Telegram widget script');
         if (container) {
-          container.innerHTML = '<p style="color: red; text-align: center;">Ошибка загрузки виджета Telegram. Проверьте настройки бота в BotFather.</p>';
+          container.innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Ошибка загрузки виджета Telegram. Убедитесь, что домен добавлен в настройки бота через BotFather (/setdomain).</p>';
         }
       };
 
@@ -134,7 +141,6 @@ export const MyCollectionsPage = () => {
         if (container) {
           container.innerHTML = '';
         }
-        delete (window as any).onTelegramAuth;
       };
     }
   }, [authStep, hasProfile]);
@@ -354,9 +360,6 @@ export const MyCollectionsPage = () => {
             </button>
             <div className="my-collections-page__telegram-login-container">
               <div id="telegram-login" />
-              <p className="my-collections-page__telegram-hint">
-                Нажмите на кнопку выше для авторизации через Telegram
-              </p>
             </div>
           </div>
         </div>
