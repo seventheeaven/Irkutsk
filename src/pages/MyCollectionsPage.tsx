@@ -332,7 +332,21 @@ export const MyCollectionsPage = () => {
               <label className="my-collections-page__auth-label">
                 Войдите через Telegram
               </label>
-              <div id="telegram-login" />
+              {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
+                <div className="my-collections-page__telegram-info">
+                  <p>Для работы авторизации через Telegram необходимо:</p>
+                  <ol>
+                    <li>Открыть @BotFather в Telegram</li>
+                    <li>Отправить /mybots</li>
+                    <li>Выбрать @suda_sign_in_bot</li>
+                    <li>Bot Settings → Domain</li>
+                    <li>Добавить домен вашего проекта на Vercel</li>
+                  </ol>
+                  <p>Telegram Login Widget не работает на localhost. Используйте домен Vercel для тестирования.</p>
+                </div>
+              ) : (
+                <div id="telegram-login" />
+              )}
             </div>
           </div>
         </div>
