@@ -315,8 +315,31 @@ export const MyCollectionsPage = () => {
     setSentCode(null);
   };
 
-  // Если профиля нет, показываем форму создания аккаунта
+  // Если профиля нет, показываем форму создания аккаунта или страницу авторизации
   if (!hasProfile) {
+    // Страница авторизации (отдельный экран)
+    if (authStep === 'phone') {
+      return (
+        <div className="my-collections-page">
+          <div className="my-collections-page__auth-page">
+            <button
+              className="my-collections-page__auth-back-btn"
+              onClick={handleBackClick}
+            >
+              ← Назад
+            </button>
+            <div className="my-collections-page__telegram-login-container">
+              <label className="my-collections-page__auth-label">
+                Войдите через Telegram
+              </label>
+              <div id="telegram-login" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Страница входа (начальный экран)
     return (
       <div className="my-collections-page">
         <div className="my-collections-page__create-account">
@@ -346,20 +369,6 @@ export const MyCollectionsPage = () => {
             )}
           </div>
           <div className="my-collections-page__create-account-content">
-
-            {authStep === 'phone' && (
-              <div className="my-collections-page__auth-form">
-                <button
-                  className="my-collections-page__auth-back-btn"
-                  onClick={handleBackClick}
-                >
-                  ← Назад
-                </button>
-                <div className="my-collections-page__telegram-login-container">
-                  <div id="telegram-login" />
-                </div>
-              </div>
-            )}
 
             {authStep === 'code' && (
               <div className="my-collections-page__auth-form">

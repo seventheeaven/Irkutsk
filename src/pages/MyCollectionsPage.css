@@ -848,16 +848,14 @@
   opacity: 0.8;
 }
 
-/* Стили для форм авторизации */
-.my-collections-page__auth-form {
+/* Стили для страницы авторизации (отдельный экран) */
+.my-collections-page__auth-page {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  min-height: 100vh;
+  position: relative;
+  background: #ffffff;
   padding: 0 16px;
   box-sizing: border-box;
-  position: relative;
-  min-height: 100vh;
 }
 
 .my-collections-page__auth-back-btn {
@@ -877,6 +875,10 @@
   z-index: 10;
 }
 
+.my-collections-page__auth-back-btn:active {
+  opacity: 0.7;
+}
+
 .my-collections-page__telegram-login-container {
   width: 100%;
   display: flex;
@@ -887,6 +889,18 @@
   left: 16px;
   right: 16px;
   box-sizing: border-box;
+}
+
+/* Стили для форм авторизации (старые, для формы кода) */
+.my-collections-page__auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  position: relative;
+  min-height: 100vh;
 }
 
 #telegram-login {
