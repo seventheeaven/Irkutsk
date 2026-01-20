@@ -892,6 +892,16 @@
   box-sizing: border-box;
 }
 
+.my-collections-page__telegram-hint {
+  font-size: 14px;
+  font-weight: 400;
+  color: #BABABA;
+  text-align: center;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  margin: 0;
+  padding: 0 16px;
+}
+
 .my-collections-page__auth-label {
   font-size: 16px;
   font-weight: 500;

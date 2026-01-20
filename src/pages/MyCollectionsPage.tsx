@@ -70,26 +70,21 @@ export const MyCollectionsPage = () => {
     if (authStep === 'phone' && !hasProfile) {
       // Очищаем предыдущий виджет, если есть
       const container = document.getElementById('telegram-login');
-      if (container) {
-        container.innerHTML = '';
+      if (!container) {
+        console.error('Telegram login container not found');
+        return;
       }
 
-      const script = document.createElement('script');
-      script.src = 'https://telegram.org/js/telegram-widget.js?22';
-      script.async = true;
-      script.setAttribute('data-telegram-login', 'suda_sign_in_bot');
-      script.setAttribute('data-size', 'large');
-      script.setAttribute('data-userpic', 'false');
-      script.setAttribute('data-request-access', 'write');
-      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-      
-      if (container) {
-        container.appendChild(script);
-      }
+      container.innerHTML = '';
 
       // Глобальная функция для обработки авторизации
       (window as any).onTelegramAuth = function (user: any) {
         console.log('Telegram user authenticated:', user);
+        
+        if (!user) {
+          console.error('No user data received from Telegram');
+          return;
+        }
         
         // Создаем профиль из данных Telegram
         const newProfile: UserProfile = {
@@ -108,6 +103,31 @@ export const MyCollectionsPage = () => {
         setHasProfile(true);
         setAuthStep('initial');
       };
+
+      // Создаем скрипт виджета
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.async = true;
+      script.setAttribute('data-telegram-login', 'suda_sign_in_bot');
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-userpic', 'false');
+      script.setAttribute('data-request-access', 'write');
+      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      
+      // Обработка ошибок загрузки
+      script.onerror = () => {
+        console.error('Failed to load Telegram widget script');
+        if (container) {
+          container.innerHTML = '<p style="color: red; text-align: center;">Ошибка загрузки виджета Telegram. Проверьте настройки бота в BotFather.</p>';
+        }
+      };
+
+      // Проверка успешной загрузки
+      script.onload = () => {
+        console.log('Telegram widget script loaded successfully');
+      };
+      
+      container.appendChild(script);
 
       return () => {
         // Очистка при размонтировании
@@ -334,6 +354,9 @@ export const MyCollectionsPage = () => {
             </button>
             <div className="my-collections-page__telegram-login-container">
               <div id="telegram-login" />
+              <p className="my-collections-page__telegram-hint">
+                Нажмите на кнопку выше для авторизации через Telegram
+              </p>
             </div>
           </div>
         </div>
