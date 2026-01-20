@@ -77,7 +77,7 @@ export const MyCollectionsPage = () => {
       const script = document.createElement('script');
       script.src = 'https://telegram.org/js/telegram-widget.js?22';
       script.async = true;
-      script.setAttribute('data-telegram-login', 'USERNAME_ТВОЕГО_БОТА'); // Замените на username вашего бота
+      script.setAttribute('data-telegram-login', 'suda_sign_in_bot');
       script.setAttribute('data-size', 'large');
       script.setAttribute('data-userpic', 'false');
       script.setAttribute('data-request-access', 'write');
