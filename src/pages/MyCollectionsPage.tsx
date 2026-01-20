@@ -65,6 +65,56 @@ export const MyCollectionsPage = () => {
     }
   }, []);
 
+  // Загружаем Telegram Widget для авторизации
+  useEffect(() => {
+    if (authStep === 'phone' && !hasProfile) {
+      // Очищаем предыдущий виджет, если есть
+      const container = document.getElementById('telegram-login');
+      if (container) {
+        container.innerHTML = '';
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.async = true;
+      script.setAttribute('data-telegram-login', 'USERNAME_ТВОЕГО_БОТА'); // Замените на username вашего бота
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-userpic', 'false');
+      script.setAttribute('data-request-access', 'write');
+      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      
+      if (container) {
+        container.appendChild(script);
+      }
+
+      // Глобальная функция для обработки авторизации
+      (window as any).onTelegramAuth = function (user: any) {
+        console.log('Telegram user:', user);
+        
+        // Создаем профиль из данных Telegram
+        const newProfile: UserProfile = {
+          name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+          username: user.username ? `@${user.username}` : `@user${user.id}`,
+          description: '',
+          avatar: user.photo_url
+        };
+        
+        localStorage.setItem('userProfile', JSON.stringify(newProfile));
+        setProfile(newProfile);
+        setHasProfile(true);
+        setAuthStep('initial');
+      };
+
+      return () => {
+        // Очистка при размонтировании
+        if (container) {
+          container.innerHTML = '';
+        }
+        delete (window as any).onTelegramAuth;
+      };
+    }
+  }, [authStep, hasProfile]);
+
   useEffect(() => {
     let ticking = false;
 
@@ -220,10 +270,6 @@ export const MyCollectionsPage = () => {
     return getRegisteredPhones().includes(phone);
   };
 
-  // Генерация мокового кода (в реальном приложении это будет отправляться через SMS)
-  const generateCode = (): string => {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-  };
 
   const handleLoginClick = () => {
     setAuthStep('phone');
@@ -236,27 +282,6 @@ export const MyCollectionsPage = () => {
     setSentCode(null);
   };
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const normalizedPhone = phoneNumber.replace(/\D/g, '');
-    
-    if (normalizedPhone.length !== 11) {
-      alert('Введите корректный номер телефона');
-      return;
-    }
-
-    // При входе автоматически регистрируем номер, если он не зарегистрирован
-    // (первый вход = регистрация)
-
-    // Генерируем и сохраняем код
-    const generatedCode = generateCode();
-    setSentCode(generatedCode);
-    setAuthStep('code');
-    
-    // В реальном приложении здесь будет отправка SMS
-    // Для тестирования выводим код в консоль
-    console.log('Код подтверждения:', generatedCode);
-  };
 
   const handleCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,25 +355,9 @@ export const MyCollectionsPage = () => {
                 >
                   ← Назад
                 </button>
-                <form onSubmit={handlePhoneSubmit} className="my-collections-page__auth-phone-form">
-                  <label className="my-collections-page__auth-label">
-                    Введите номер телефона
-                  </label>
-                  <input
-                    type="tel"
-                    className="my-collections-page__auth-input"
-                    placeholder="+7 (999) 123-45-67"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="my-collections-page__create-account-register-btn"
-                  >
-                    Продолжить
-                  </button>
-                </form>
+                <div className="my-collections-page__telegram-login-container">
+                  <div id="telegram-login" />
+                </div>
               </div>
             )}
 

@@ -854,13 +854,16 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-top: 100px;
+  padding: 0 16px;
   box-sizing: border-box;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
+  position: relative;
+  min-height: 100vh;
 }
 
 .my-collections-page__auth-back-btn {
+  position: absolute;
+  top: 20px;
+  left: 16px;
   background: transparent;
   border: none;
   font-size: 16px;
@@ -871,7 +874,25 @@
   text-align: left;
   font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   transition: opacity 0.2s ease;
-  align-self: flex-start;
+  z-index: 10;
+}
+
+.my-collections-page__telegram-login-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: calc(200px + 100px + 32px + 50px + 72px); /* Та же позиция, что и кнопка "Войти" */
+  left: 16px;
+  right: 16px;
+  box-sizing: border-box;
+}
+
+#telegram-login {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .my-collections-page__auth-back-btn:active {
