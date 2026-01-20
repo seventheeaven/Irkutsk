@@ -89,7 +89,7 @@ export const MyCollectionsPage = () => {
 
       // Глобальная функция для обработки авторизации
       (window as any).onTelegramAuth = function (user: any) {
-        console.log('Telegram user:', user);
+        console.log('Telegram user authenticated:', user);
         
         // Создаем профиль из данных Telegram
         const newProfile: UserProfile = {
@@ -99,7 +99,11 @@ export const MyCollectionsPage = () => {
           avatar: user.photo_url
         };
         
+        // Сохраняем профиль
         localStorage.setItem('userProfile', JSON.stringify(newProfile));
+        
+        // Обновляем состояние - React автоматически перерендерит компонент
+        // и покажет главную страницу вместо страницы авторизации
         setProfile(newProfile);
         setHasProfile(true);
         setAuthStep('initial');
@@ -329,24 +333,7 @@ export const MyCollectionsPage = () => {
               ← Назад
             </button>
             <div className="my-collections-page__telegram-login-container">
-              <label className="my-collections-page__auth-label">
-                Войдите через Telegram
-              </label>
-              {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
-                <div className="my-collections-page__telegram-info">
-                  <p>Для работы авторизации через Telegram необходимо:</p>
-                  <ol>
-                    <li>Открыть @BotFather в Telegram</li>
-                    <li>Отправить /mybots</li>
-                    <li>Выбрать @suda_sign_in_bot</li>
-                    <li>Bot Settings → Domain</li>
-                    <li>Добавить домен вашего проекта на Vercel</li>
-                  </ol>
-                  <p>Telegram Login Widget не работает на localhost. Используйте домен Vercel для тестирования.</p>
-                </div>
-              ) : (
-                <div id="telegram-login" />
-              )}
+              <div id="telegram-login" />
             </div>
           </div>
         </div>
