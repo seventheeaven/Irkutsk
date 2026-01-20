@@ -196,10 +196,49 @@ export const MyCollectionsPage = () => {
       console.log('=== MESSAGE EVENT RECEIVED ===');
       console.log('Origin:', event.origin);
       console.log('Data:', event.data);
-      if (event.origin === 'https://oauth.telegram.org' && event.data && event.data.type === 'auth') {
-        console.log('Telegram auth message received!');
-        if (event.data.user) {
-          telegramAuthHandler(event.data.user);
+      
+      if (event.origin === 'https://oauth.telegram.org') {
+        // Обрабатываем различные события от Telegram
+        if (event.data && event.data.event === 'unauthorized') {
+          console.error('=== TELEGRAM UNAUTHORIZED ===');
+          console.error('Telegram returned unauthorized event');
+          console.error('This usually means:');
+          console.error('1. Domain mismatch in BotFather settings');
+          console.error('2. User did not confirm access in Telegram');
+          console.error('3. Bot settings issue');
+          
+          // Показываем пользователю понятное сообщение
+          const container = document.getElementById('telegram-login');
+          if (container) {
+            const currentDomain = window.location.hostname;
+            container.innerHTML = `
+              <div style="padding: 20px; text-align: center;">
+                <p style="color: red; font-weight: 600; margin-bottom: 16px;">Ошибка авторизации</p>
+                <p style="color: #111; margin-bottom: 12px; font-size: 14px;">Telegram вернул ошибку "unauthorized"</p>
+                <div style="background: #F5F5F5; padding: 16px; border-radius: 12px; text-align: left; font-size: 14px; color: #111;">
+                  <p style="margin: 0 0 12px 0; font-weight: 600;">Возможные причины:</p>
+                  <ol style="margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Домен в BotFather не совпадает с текущим: <strong>${currentDomain}</strong></li>
+                    <li style="margin-bottom: 8px;">Вы не подтвердили доступ в Telegram приложении</li>
+                    <li style="margin-bottom: 8px;">Проблема с настройками бота</li>
+                  </ol>
+                  <p style="margin: 12px 0 0 0; font-weight: 600;">Что делать:</p>
+                  <ol style="margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Проверьте в BotFather: /setdomain → @suda_sign_in_bot → должно быть: <strong>${currentDomain}</strong></li>
+                    <li style="margin-bottom: 8px;">После ввода номера зайдите в Telegram и нажмите кнопку подтверждения</li>
+                    <li style="margin-bottom: 0;">Попробуйте еще раз</li>
+                  </ol>
+                </div>
+              </div>
+            `;
+          }
+        } else if (event.data && event.data.type === 'auth') {
+          console.log('Telegram auth message received!');
+          if (event.data.user) {
+            telegramAuthHandler(event.data.user);
+          }
+        } else if (event.data && event.data.event === 'ready') {
+          console.log('Telegram widget is ready');
         }
       }
     });
