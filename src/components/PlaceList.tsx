@@ -32,3 +32,4 @@ export const PlaceList = ({ places, selectedCategory }: PlaceListProps) => {
 
 
 
+

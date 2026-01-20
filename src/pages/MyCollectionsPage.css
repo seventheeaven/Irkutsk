@@ -629,26 +629,37 @@
   left: 0;
   right: 0;
   width: 100%;
-  height: 400px;
+  height: 600px;
   background: linear-gradient(to bottom, #ffffff 0%, #FFE9BD 100%);
   border-radius: 0 0 56px 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 56px;
   box-sizing: border-box;
+  position: relative;
 }
 
-.my-collections-page__create-account-title {
-  font-family: 'Rooftop Run', sans-serif;
-  font-size: 64px;
-  font-weight: 700;
-  color: #111111;
-  margin: 0 0 16px 0;
-  text-align: center;
-  text-transform: uppercase;
-  line-height: 1;
+.my-collections-page__sign-in-image {
+  width: 162px;
+  height: 162px;
+  object-fit: contain;
+  margin: 0 auto;
+  position: absolute;
+  top: 38px; /* 200px - 162px = 38px, чтобы sign_in заканчивался там, где начинается logo_suda */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.my-collections-page__logo-suda {
+  width: 380px;
+  height: auto;
+  object-fit: contain;
+  position: absolute;
+  top: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
 }
 
 .my-collections-page__create-account-content {
@@ -659,7 +670,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 448px; /* 400px (высота градиента) + 48px (отступ) */
+  padding-top: 600px; /* Высота ректенгла */
 }
 
 .my-collections-page__create-account-text {
@@ -672,13 +683,25 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  position: absolute;
+  top: calc(200px + 100px + 32px); /* 200px (логотип) + примерная высота логотипа (100px) + 32px */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
 }
 
 .my-collections-page__create-account-buttons {
-  width: 100%;
+  width: calc(100% - 32px);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
+  margin-top: 0;
+  position: absolute;
+  top: calc(200px + 100px + 32px + 50px + 72px); /* 200px (логотип) + высота логотипа (100px) + 32px (отступ текста) + высота текста (50px) + 72px (отступ кнопки) */
+  left: 16px;
+  right: 16px;
+  z-index: 1;
+  box-sizing: border-box;
 }
 
 .my-collections-page__create-account-form {

@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Header } from '../components/Header';
 import plusIcon from '../../img/plus.svg';
 import collectionsImage from '../../img/collections.jpg';
+import logoSuda from '../../img/logo_suda.svg';
+import signInImage from '../../img/sign_in.png';
 import './MyCollectionsPage.css';
 
 interface Collection {
@@ -307,28 +309,31 @@ export const MyCollectionsPage = () => {
       <div className="my-collections-page">
         <div className="my-collections-page__create-account">
           <div className="my-collections-page__create-account-gradient">
-            <h1 className="my-collections-page__create-account-title">BY TIME</h1>
+            <img 
+              src={signInImage} 
+              alt="Sign in" 
+              className="my-collections-page__sign-in-image"
+            />
+            <img 
+              src={logoSuda} 
+              alt="Logo Suda" 
+              className="my-collections-page__logo-suda"
+            />
             <p className="my-collections-page__create-account-text">
               Сохраняйте места<br />и делитесь своими публикациями
             </p>
-          </div>
-          <div className="my-collections-page__create-account-content">
             {authStep === 'initial' && (
               <div className="my-collections-page__create-account-buttons">
                 <button
                   className="my-collections-page__create-account-register-btn"
-                  onClick={handleRegisterClick}
-                >
-                  Зарегистрироваться
-                </button>
-                <button
-                  className="my-collections-page__create-account-login-btn"
                   onClick={handleLoginClick}
                 >
                   Войти
                 </button>
               </div>
             )}
+          </div>
+          <div className="my-collections-page__create-account-content">
 
             {authStep === 'phone' && (
               <div className="my-collections-page__auth-form">
