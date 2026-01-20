@@ -77,26 +77,38 @@ export const MyCollectionsPage = () => {
     }
   }, []);
 
-  // Глобальная функция для обработки авторизации Telegram (должна быть объявлена до загрузки виджета)
+  // Глобальная функция для обработки авторизации Telegram (должна быть объявлена ДО загрузки виджета)
+  // Объявляем её сразу, не в useEffect, чтобы она точно была доступна
   useEffect(() => {
     // Объявляем глобальную функцию для обработки авторизации
-    (window as any).onTelegramAuth = function (user: any) {
-      console.log('=== Telegram Auth Callback Called ===');
-      console.log('User data:', user);
+    const telegramAuthHandler = function (user: any) {
+      console.log('=== TELEGRAM AUTH CALLBACK CALLED ===');
+      console.log('Full user object:', JSON.stringify(user, null, 2));
+      console.log('User ID:', user?.id);
+      console.log('User first_name:', user?.first_name);
+      
+      // Показываем визуальное уведомление
+      alert('Авторизация получена! Сохраняю профиль...');
       
       if (!user) {
         console.error('No user data received from Telegram');
-        alert('Ошибка авторизации. Попробуйте еще раз.');
+        alert('Ошибка: данные пользователя не получены. Попробуйте еще раз.');
+        return;
+      }
+      
+      if (!user.id) {
+        console.error('User ID is missing');
+        alert('Ошибка: ID пользователя отсутствует. Попробуйте еще раз.');
         return;
       }
       
       try {
         // Создаем профиль из данных Telegram
         const newProfile: UserProfile = {
-          name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+          name: (user.first_name || '') + (user.last_name ? ' ' + user.last_name : ''),
           username: user.username ? `@${user.username}` : `@user${user.id}`,
           description: '',
-          avatar: user.photo_url
+          avatar: user.photo_url || undefined
         };
         
         console.log('Creating profile:', newProfile);
@@ -113,23 +125,37 @@ export const MyCollectionsPage = () => {
         console.log('State updated successfully');
         console.log('User profile saved successfully');
         
+        // Показываем успешное сообщение
+        alert('Авторизация успешна! Перезагружаю страницу...');
+        
         // Перезагружаем страницу для применения изменений
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
+        window.location.href = '/my-collections';
       } catch (error) {
         console.error('Error saving user profile:', error);
-        alert('Ошибка при сохранении профиля. Попробуйте еще раз.');
+        alert('Ошибка при сохранении профиля: ' + (error as Error).message);
       }
     };
 
+    // Присваиваем функцию глобально
+    (window as any).onTelegramAuth = telegramAuthHandler;
+    
     // Также добавляем функцию в window для отладки
     (window as any).checkTelegramAuth = function() {
+      console.log('=== CHECKING TELEGRAM AUTH ===');
       console.log('onTelegramAuth function exists:', typeof (window as any).onTelegramAuth);
+      console.log('onTelegramAuth function:', (window as any).onTelegramAuth);
+      console.log('Current URL:', window.location.href);
+      console.log('Current domain:', window.location.hostname);
     };
+    
+    // Логируем, что функция объявлена
+    console.log('=== TELEGRAM AUTH FUNCTION DECLARED ===');
+    console.log('Function type:', typeof (window as any).onTelegramAuth);
+    console.log('Window object has onTelegramAuth:', 'onTelegramAuth' in window);
 
     return () => {
-      // Не удаляем функцию при размонтировании, так как она нужна для виджета
+      // НЕ удаляем функцию при размонтировании, так как она нужна для виджета
+      console.log('Component unmounting, but keeping onTelegramAuth function');
     };
   }, []);
 
@@ -145,6 +171,17 @@ export const MyCollectionsPage = () => {
       // Очищаем контейнер
       container.innerHTML = '';
 
+      // Проверяем, что функция onTelegramAuth доступна перед загрузкой виджета
+      console.log('=== LOADING TELEGRAM WIDGET ===');
+      console.log('onTelegramAuth available:', typeof (window as any).onTelegramAuth);
+      console.log('onTelegramAuth function:', (window as any).onTelegramAuth);
+      
+      if (typeof (window as any).onTelegramAuth !== 'function') {
+        console.error('ERROR: onTelegramAuth is not a function!');
+        container.innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Ошибка: функция авторизации не загружена. Обновите страницу.</p>';
+        return;
+      }
+      
       // Создаем скрипт виджета согласно официальной документации Telegram
       const script = document.createElement('script');
       script.src = 'https://telegram.org/js/telegram-widget.js?22';
@@ -154,6 +191,10 @@ export const MyCollectionsPage = () => {
       script.setAttribute('data-userpic', 'false');
       script.setAttribute('data-request-access', 'write');
       script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      
+      console.log('Widget script attributes set');
+      console.log('data-telegram-login:', script.getAttribute('data-telegram-login'));
+      console.log('data-onauth:', script.getAttribute('data-onauth'));
       
       // Обработка ошибок загрузки
       script.onerror = () => {
