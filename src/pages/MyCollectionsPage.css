@@ -907,6 +907,35 @@
   justify-content: center;
 }
 
+.my-collections-page__telegram-info {
+  width: 100%;
+  padding: 20px;
+  background: #F5F5F5;
+  border-radius: 16px;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__telegram-info p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.my-collections-page__telegram-info ol {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+}
+
+.my-collections-page__telegram-info li {
+  font-size: 14px;
+  font-weight: 400;
+  color: #111111;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
 /* Стили для форм авторизации (старые, для формы кода) */
 .my-collections-page__auth-form {
   width: 100%;
