@@ -239,22 +239,23 @@
 }
 
 .my-collections-page__collections-grid {
-  column-count: 2;
-  column-gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   width: 100%;
-  padding: 0 16px 92px 16px;
+  padding: 0 8px 92px 8px;
   box-sizing: border-box;
+  align-items: start;
 }
 
 .my-collections-page__collection-card {
-  break-inside: avoid;
-  margin-bottom: 12px;
   background: transparent;
   border-radius: 16px;
   overflow: visible;
   display: flex;
   flex-direction: column;
   position: relative;
+  align-self: start;
 }
 
 .my-collections-page__collection-delete {
@@ -290,6 +291,7 @@
   border-radius: 16px;
   object-fit: cover;
   display: block;
+  height: auto;
 }
 
 .my-collections-page__collection-image[src=""] {
@@ -301,11 +303,25 @@
   font-weight: 500;
   color: #1a1a1a;
   margin: 4px 0 0 0;
-  padding-left: 6px;
+  padding: 0 6px;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__collection-description-text {
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
+  margin: 2px 0 0 0;
+  padding: 0 6px 4px 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
@@ -501,6 +517,39 @@
 
 .my-collections-page__modal-title-input::placeholder {
   color: #BABABA;
+}
+
+.my-collections-page__modal-description-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #F5F5F5;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+  resize: vertical;
+  margin-top: 12px;
+  min-height: 100px;
+}
+
+.my-collections-page__modal-description-input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__modal-description-input::placeholder {
+  color: #BABABA;
+}
+
+.my-collections-page__modal-char-count {
+  font-size: 12px;
+  color: #BABABA;
+  text-align: right;
+  margin-top: 4px;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .my-collections-page__modal-actions {

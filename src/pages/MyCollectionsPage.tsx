@@ -18,6 +18,7 @@ interface Collection {
   authorName?: string;
   authorUsername?: string;
   createdAt?: number;
+  description?: string;
 }
 
 interface LikedItem {
@@ -460,6 +461,7 @@ export const MyCollectionsPage = () => {
     setIsModalOpen(false);
     setSelectedImage(null);
     setPublicationTitle('');
+    setPublicationDescription('');
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -483,7 +485,8 @@ export const MyCollectionsPage = () => {
         userId: profile.email,
         authorName: profile.name,
         authorUsername: profile.username,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        description: publicationDescription.trim() || undefined
       };
       
       // Сохраняем в KV
@@ -1056,13 +1059,7 @@ export const MyCollectionsPage = () => {
               </div>
             ) : (
               <div className="my-collections-page__collections-grid">
-                {collections.map((collection, index) => {
-                  // Генерируем случайные высоты для эффекта Pinterest
-                  const getRandomHeight = (idx: number) => {
-                    const heights = [180, 220, 250, 200, 280, 190, 240, 210];
-                    return heights[idx % heights.length];
-                  };
-                  
+                {collections.map((collection) => {
                   const imageUrl = collection.imageUrls[0] || '';
                   
                   return (
@@ -1079,15 +1076,16 @@ export const MyCollectionsPage = () => {
                           src={imageUrl}
                           alt={collection.name}
                           className="my-collections-page__collection-image"
-                          style={{ height: `${getRandomHeight(index)}px` }}
                         />
                       ) : (
-                        <div 
-                          className="my-collections-page__collection-image"
-                          style={{ height: `${getRandomHeight(index)}px` }}
-                        ></div>
+                        <div className="my-collections-page__collection-image"></div>
                       )}
-                      <p className="my-collections-page__collection-description">{collection.name}</p>
+                      {collection.name && (
+                        <p className="my-collections-page__collection-description">{collection.name}</p>
+                      )}
+                      {collection.description && (
+                        <p className="my-collections-page__collection-description-text">{collection.description}</p>
+                      )}
                     </div>
                   );
                 })}
@@ -1189,6 +1187,23 @@ export const MyCollectionsPage = () => {
                 onChange={(e) => setPublicationTitle(e.target.value)}
                 autoFocus
               />
+              <textarea
+                className="my-collections-page__modal-description-input"
+                placeholder="Описание (необязательно, до 300 символов)"
+                value={publicationDescription}
+                onChange={(e) => {
+                  if (e.target.value.length <= 300) {
+                    setPublicationDescription(e.target.value);
+                  }
+                }}
+                rows={4}
+                maxLength={300}
+              />
+              {publicationDescription.length > 0 && (
+                <div className="my-collections-page__modal-char-count">
+                  {publicationDescription.length}/300
+                </div>
+              )}
             </div>
 
             <div className="my-collections-page__modal-actions">
