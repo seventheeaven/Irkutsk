@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
 import { MyCollectionsPage } from './pages/MyCollectionsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import './App.css';
 
 function AppContent() {
@@ -55,6 +56,7 @@ function AppContent() {
           <Route path="/recommendations" element={<RecommendationsPage />} />
           <Route path="/my-collections" element={<MyCollectionsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
       </div>
     </MenuProvider>

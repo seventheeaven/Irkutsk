@@ -44,6 +44,7 @@ export const MyCollectionsPage = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [publicationTitle, setPublicationTitle] = useState('');
   const [authStep, setAuthStep] = useState<'initial' | 'email' | 'profileSetup'>('initial');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSendingLink, setIsSendingLink] = useState(false);
@@ -135,29 +136,38 @@ export const MyCollectionsPage = () => {
     }
   };
 
-  // Сначала проверяем токен, если он есть в URL
+  // Проверяем cookies для восстановления сессии (приоритет над localStorage)
   useEffect(() => {
-    // Если токен уже проверен, не проверяем повторно
-    if (tokenVerifiedRef.current) return;
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
 
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    
-    // Если токена нет, проверяем есть ли email в localStorage (для обратной совместимости)
-    // и загружаем профиль из KV
-    if (!token) {
+    const userEmail = getCookie('userEmail');
+    if (userEmail) {
+      (async () => {
+        const kvProfile = await loadUserProfile(userEmail);
+        if (kvProfile) {
+          setProfile(kvProfile);
+          setHasProfile(true);
+          localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+          return; // Не проверяем localStorage если нашли в cookies
+        }
+      })();
+    } else {
+      // Если нет cookies, проверяем localStorage (для обратной совместимости)
       const savedProfile = localStorage.getItem('userProfile');
       if (savedProfile) {
         try {
           const profileData: UserProfile = JSON.parse(savedProfile);
-          // Если есть email, загружаем профиль из KV
           if (profileData.email) {
             (async () => {
               const kvProfile = await loadUserProfile(profileData.email!);
               if (kvProfile) {
                 setProfile(kvProfile);
                 setHasProfile(true);
-                // Обновляем localStorage для обратной совместимости
                 localStorage.setItem('userProfile', JSON.stringify(kvProfile));
               } else {
                 // Если профиля нет в KV, но есть в localStorage, используем его
@@ -176,6 +186,43 @@ export const MyCollectionsPage = () => {
       } else {
         setHasProfile(false);
       }
+    }
+  }, []);
+
+  // Проверяем setup=profile для настройки профиля нового пользователя
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const setup = params.get('setup');
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    if (setup === 'profile') {
+      const pendingEmail = getCookie('pendingEmail') || sessionStorage.getItem('pendingEmail');
+      if (pendingEmail) {
+        setVerifiedEmail(pendingEmail);
+        setAuthStep('profileSetup');
+        const usernameBase = pendingEmail.split('@')[0] || 'user';
+        setProfileUsername(`@${usernameBase}`);
+        // Очищаем URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
+
+  // Сначала проверяем токен, если он есть в URL (старая логика для обратной совместимости)
+  useEffect(() => {
+    // Если токен уже проверен, не проверяем повторно
+    if (tokenVerifiedRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    
+    // Если токена нет, не делаем ничего (профиль уже загружен через cookies/localStorage выше)
+    if (!token) {
       return;
     }
 
@@ -257,7 +304,7 @@ export const MyCollectionsPage = () => {
       const resp = await fetch('/api/auth/request-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, mode: authMode }),
       });
       const data = await resp.json();
       if (!resp.ok) {
@@ -543,7 +590,19 @@ export const MyCollectionsPage = () => {
               <div className="my-collections-page__create-account-buttons">
                 <button
                   className="my-collections-page__create-account-register-btn"
-                  onClick={() => setAuthStep('email')}
+                  onClick={() => {
+                    setAuthMode('register');
+                    setAuthStep('email');
+                  }}
+                >
+                  Зарегистрироваться
+                </button>
+                <button
+                  className="my-collections-page__create-account-login-btn"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setAuthStep('email');
+                  }}
                 >
                   Войти
                 </button>

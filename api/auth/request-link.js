@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { email } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { email, mode } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
     if (typeof email !== 'string' || !email.includes('@')) {
       res.status(400).json({ error: 'Invalid email' });
@@ -33,31 +33,48 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    const isLogin = mode === 'login';
+    
+    // Если это вход, проверяем существует ли пользователь
+    if (isLogin) {
+      const existingProfile = await kv.get(`user:${email}`);
+      if (!existingProfile) {
+        res.status(400).json({ error: 'Пользователь с таким email не зарегистрирован' });
+        return;
+      }
+    }
+
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = sha256(token);
 
     // Store token hash -> email with TTL 15 minutes
-    await kv.set(`magiclink:${tokenHash}`, { email }, { ex: 60 * 15 });
+    await kv.set(`magiclink:${tokenHash}`, { email, mode: mode || 'register' }, { ex: 60 * 15 });
 
     const baseUrl = getBaseUrl(req);
-    const link = `${baseUrl}/my-collections?token=${encodeURIComponent(token)}`;
+    const link = `${baseUrl}/auth/callback?token=${encodeURIComponent(token)}`;
 
     const resend = new Resend(apiKey);
+    
+    const subject = isLogin ? 'Вход в SYUDA' : 'Регистрация в SYUDA';
+    const actionText = isLogin ? 'Войти' : 'Зарегистрироваться';
+    const description = isLogin 
+      ? 'Нажмите на кнопку ниже, чтобы войти в свой аккаунт. Ссылка действует 15 минут.'
+      : 'Нажмите на кнопку ниже, чтобы завершить регистрацию. Ссылка действует 15 минут.';
 
     await resend.emails.send({
       from: 'SYUDA <onboarding@resend.dev>',
       to: [email],
-      subject: 'Вход в SYUDA',
+      subject: subject,
       html: `
         <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
-          <h2 style="margin:0 0 12px 0;">Вход в SYUDA</h2>
-          <p style="margin:0 0 16px 0;">Нажмите на кнопку ниже, чтобы войти. Ссылка действует 15 минут.</p>
+          <h2 style="margin:0 0 12px 0;">${subject}</h2>
+          <p style="margin:0 0 16px 0;">${description}</p>
           <p style="margin:0 0 16px 0;">
             <a href="${link}" style="display:inline-block;padding:12px 18px;background:#111;color:#fff;border-radius:12px;text-decoration:none;">
-              Войти
+              ${actionText}
             </a>
           </p>
-          <p style="margin:0;color:#888;font-size:12px;">Если вы не запрашивали вход — просто проигнорируйте это письмо.</p>
+          <p style="margin:0;color:#888;font-size:12px;">Если вы не запрашивали ${isLogin ? 'вход' : 'регистрацию'} — просто проигнорируйте это письмо.</p>
         </div>
       `,
     });
