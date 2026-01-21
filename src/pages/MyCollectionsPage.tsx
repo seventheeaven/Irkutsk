@@ -62,6 +62,7 @@ export const MyCollectionsPage = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const [loadingDots, setLoadingDots] = useState('');
+  const [sendingDots, setSendingDots] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
@@ -612,7 +613,7 @@ export const MyCollectionsPage = () => {
     return hashHex;
   };
 
-  // Анимация точек при загрузке
+  // Анимация точек при загрузке входа
   useEffect(() => {
     if (!isLoggingIn) {
       setLoadingDots('');
@@ -627,6 +628,22 @@ export const MyCollectionsPage = () => {
 
     return () => clearInterval(interval);
   }, [isLoggingIn]);
+
+  // Анимация точек при отправке ссылки
+  useEffect(() => {
+    if (!isSendingLink) {
+      setSendingDots('');
+      return;
+    }
+
+    let dotCount = 0;
+    const interval = setInterval(() => {
+      dotCount = (dotCount + 1) % 4; // 0, 1, 2, 3, потом снова 0
+      setSendingDots('.'.repeat(dotCount));
+    }, 500); // Меняем каждые 500мс
+
+    return () => clearInterval(interval);
+  }, [isSendingLink]);
 
   // Обработка входа по email и паролю
   const handleLogin = async (e: React.FormEvent) => {
@@ -906,7 +923,7 @@ export const MyCollectionsPage = () => {
                     Ссылка для регистрации отправлена на <strong>{linkSentTo}</strong>
                     <br />
                     <br />
-                    После того, как придумаете пароль возвращайтесь,
+                    Возвращайтесь, как придумаете пароль (вам там все объяснят, не бойтесь)
                   </p>
                   <form onSubmit={handleLogin} className="my-collections-page__auth-form">
                     <input
@@ -962,7 +979,7 @@ export const MyCollectionsPage = () => {
                     className="my-collections-page__create-account-register-btn"
                     disabled={isSendingLink}
                   >
-                    {isSendingLink ? 'Отправляем...' : 'Отправить ссылку'}
+                    {isSendingLink ? `Отправляю${sendingDots}` : 'Отправить ссылку'}
                   </button>
                 </form>
               )}
