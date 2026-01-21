@@ -46,21 +46,23 @@
 }
 
 .recommendations-page__grid {
-  column-count: 2;
-  column-gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   width: 100%;
-  padding: 0 16px 92px 16px;
+  padding: 0 8px 92px 8px;
+  box-sizing: border-box;
+  align-items: start;
 }
 
 .recommendations-page__card {
-  break-inside: avoid;
-  margin-bottom: 12px;
   background: transparent;
   border-radius: 16px;
   overflow: visible;
   display: flex;
   flex-direction: column;
   position: relative;
+  align-self: start;
 }
 
 .recommendations-page__image {
@@ -163,13 +165,13 @@
 
 @media (min-width: 768px) {
   .recommendations-page__grid {
-    column-count: 3;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
   .recommendations-page__grid {
-    column-count: 4;
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
