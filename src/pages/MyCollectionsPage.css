@@ -848,8 +848,8 @@
   opacity: 0.8;
 }
 
-/* Стили для Telegram виджета */
-.my-collections-page__telegram-widget-container {
+/* Стили для формы авторизации через email */
+.my-collections-page__auth-form-container {
   width: calc(100% - 32px);
   position: absolute;
   top: calc(200px + 100px + 32px + 50px + 72px); /* Та же позиция, что и кнопка "Войти" */
@@ -857,18 +857,73 @@
   right: 16px;
   z-index: 10;
   box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60px;
-  background: transparent;
-  pointer-events: auto;
 }
 
-.my-collections-page__telegram-widget-container iframe {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-height: 60px !important;
+.my-collections-page__auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.my-collections-page__auth-tab {
+  flex: 1;
+  height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: #BABABA;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.my-collections-page__auth-tab--active {
+  color: #111111;
+  border-bottom-color: #111111;
+}
+
+.my-collections-page__auth-error {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #FFE9BD;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
+  text-align: center;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.my-collections-page__auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-collections-page__auth-input {
+  width: 100%;
+  height: 60px;
+  padding: 0 20px;
+  border: 2px solid #F5F5F5;
+  border-radius: 32px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  background: #ffffff;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.my-collections-page__auth-input:focus {
+  outline: none;
+  border-color: #BABABA;
+}
+
+.my-collections-page__auth-input::placeholder {
+  color: #BABABA;
 }
 
 

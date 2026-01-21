@@ -28,6 +28,12 @@ interface UserProfile {
   avatar?: string;
 }
 
+interface UserAccount {
+  email: string;
+  password: string;
+  profile: UserProfile;
+}
+
 export const MyCollectionsPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -38,10 +44,32 @@ export const MyCollectionsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [publicationTitle, setPublicationTitle] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
-  const telegramWidgetContainerRef = useRef<HTMLDivElement>(null);
+
+  // Получаем список зарегистрированных пользователей
+  const getRegisteredUsers = (): UserAccount[] => {
+    const users = localStorage.getItem('registeredUsers');
+    return users ? JSON.parse(users) : [];
+  };
+
+  // Сохраняем зарегистрированного пользователя
+  const saveUser = (userAccount: UserAccount) => {
+    const users = getRegisteredUsers();
+    const existingUserIndex = users.findIndex(u => u.email === userAccount.email);
+    if (existingUserIndex >= 0) {
+      users[existingUserIndex] = userAccount;
+    } else {
+      users.push(userAccount);
+    }
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+  };
 
   // Загружаем профиль из localStorage
   useEffect(() => {
@@ -60,69 +88,73 @@ export const MyCollectionsPage = () => {
     }
   }, []);
 
-  // Глобальная функция для обработки авторизации через Telegram
-  useEffect(() => {
-    (window as any).onTelegramAuth = (user: any) => {
-      console.log('TELEGRAM USER:', user);
-      
-      // Создаем профиль пользователя из данных Telegram
-      const newProfile: UserProfile = {
-        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь',
-        username: user.username ? `@${user.username}` : `@user${user.id}`,
-        description: '',
-        avatar: user.photo_url || undefined
-      };
-      
-      // Сохраняем профиль в localStorage
-      localStorage.setItem('userProfile', JSON.stringify(newProfile));
-      
-      // Обновляем состояние
-      setProfile(newProfile);
-      setHasProfile(true);
-    };
+  // Обработка регистрации
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-    // Очистка при размонтировании
-    return () => {
-      delete (window as any).onTelegramAuth;
-    };
-  }, []);
-
-  // Загрузка Telegram виджета
-  useEffect(() => {
-    if (!hasProfile && telegramWidgetContainerRef.current) {
-      // Небольшая задержка, чтобы убедиться, что DOM обновился
-      const timer = setTimeout(() => {
-        if (telegramWidgetContainerRef.current) {
-          // Очищаем контейнер перед загрузкой
-          telegramWidgetContainerRef.current.innerHTML = '';
-
-          // Создаем скрипт для Telegram виджета
-          const script = document.createElement('script');
-          script.async = true;
-          script.src = 'https://telegram.org/js/telegram-widget.js?22';
-          script.setAttribute('data-telegram-login', 'suda_sign_in_bot');
-          script.setAttribute('data-size', 'large');
-          script.setAttribute('data-userpic', 'false');
-          script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-
-          // Обработка загрузки скрипта
-          script.onerror = (error) => {
-            console.error('Failed to load Telegram widget script:', error);
-          };
-
-          telegramWidgetContainerRef.current.appendChild(script);
-        }
-      }, 100);
-
-      // Очистка при размонтировании или изменении состояния
-      return () => {
-        clearTimeout(timer);
-        if (telegramWidgetContainerRef.current) {
-          telegramWidgetContainerRef.current.innerHTML = '';
-        }
-      };
+    if (!email || !password || !name) {
+      setError('Заполните все поля');
+      return;
     }
-  }, [hasProfile]);
+
+    if (!email.includes('@')) {
+      setError('Введите корректный email');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Пароль должен быть не менее 6 символов');
+      return;
+    }
+
+    const users = getRegisteredUsers();
+    if (users.find(u => u.email === email)) {
+      setError('Пользователь с таким email уже зарегистрирован');
+      return;
+    }
+
+    const newProfile: UserProfile = {
+      name: name.trim(),
+      username: `@${email.split('@')[0]}`,
+      description: '',
+      avatar: undefined
+    };
+
+    const newUser: UserAccount = {
+      email,
+      password,
+      profile: newProfile
+    };
+
+    saveUser(newUser);
+    localStorage.setItem('userProfile', JSON.stringify(newProfile));
+    setProfile(newProfile);
+    setHasProfile(true);
+  };
+
+  // Обработка входа
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!email || !password) {
+      setError('Заполните все поля');
+      return;
+    }
+
+    const users = getRegisteredUsers();
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+      setError('Неверный email или пароль');
+      return;
+    }
+
+    localStorage.setItem('userProfile', JSON.stringify(user.profile));
+    setProfile(user.profile);
+    setHasProfile(true);
+  };
 
   useEffect(() => {
     let ticking = false;
@@ -282,10 +314,88 @@ export const MyCollectionsPage = () => {
             <p className="my-collections-page__create-account-text">
               Сохраняйте места<br />и делитесь своими публикациями
             </p>
-            <div 
-              ref={telegramWidgetContainerRef}
-              className="my-collections-page__telegram-widget-container"
-            />
+            <div className="my-collections-page__auth-form-container">
+              <div className="my-collections-page__auth-tabs">
+                <button
+                  className={`my-collections-page__auth-tab ${authMode === 'login' ? 'my-collections-page__auth-tab--active' : ''}`}
+                  onClick={() => {
+                    setAuthMode('login');
+                    setError('');
+                  }}
+                >
+                  Войти
+                </button>
+                <button
+                  className={`my-collections-page__auth-tab ${authMode === 'register' ? 'my-collections-page__auth-tab--active' : ''}`}
+                  onClick={() => {
+                    setAuthMode('register');
+                    setError('');
+                  }}
+                >
+                  Регистрация
+                </button>
+              </div>
+              
+              {error && (
+                <div className="my-collections-page__auth-error">
+                  {error}
+                </div>
+              )}
+
+              {authMode === 'login' ? (
+                <form onSubmit={handleLogin} className="my-collections-page__auth-form">
+                  <input
+                    type="email"
+                    className="my-collections-page__auth-input"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="password"
+                    className="my-collections-page__auth-input"
+                    placeholder="Пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="my-collections-page__create-account-register-btn">
+                    Войти
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleRegister} className="my-collections-page__auth-form">
+                  <input
+                    type="text"
+                    className="my-collections-page__auth-input"
+                    placeholder="Имя"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="email"
+                    className="my-collections-page__auth-input"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="password"
+                    className="my-collections-page__auth-input"
+                    placeholder="Пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="my-collections-page__create-account-register-btn">
+                    Зарегистрироваться
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </div>
