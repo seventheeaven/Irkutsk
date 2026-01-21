@@ -36,8 +36,9 @@ export const AuthCallbackPage = () => {
           return;
         }
 
-        const userEmail = data.email;
-        console.log('AuthCallbackPage: User email', userEmail);
+        // Нормализуем email
+        const userEmail = data.email.toLowerCase().trim();
+        console.log('AuthCallbackPage: User email', { original: data.email, normalized: userEmail });
 
         // Проверяем, есть ли уже профиль для этого email
         let profileData;

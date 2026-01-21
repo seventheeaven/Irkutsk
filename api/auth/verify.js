@@ -31,7 +31,8 @@ module.exports = async function handler(req, res) {
     // One-time use
     await kv.del(key);
 
-    const email = String(record.email);
+    // Нормализуем email (нижний регистр, без пробелов)
+    const email = String(record.email).toLowerCase().trim();
 
     // Return only email - frontend will check if user exists and show profile setup if needed
     res.status(200).json({ ok: true, email });
