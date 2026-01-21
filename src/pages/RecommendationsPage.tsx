@@ -183,11 +183,6 @@ export const RecommendationsPage = () => {
     setLikedItems(newLikedItems);
   }, [likedItems]);
   
-  // Генерируем случайные высоты для эффекта Pinterest
-  const getRandomHeight = (index: number) => {
-    const heights = [180, 220, 250, 200, 280, 190, 240, 210];
-    return heights[index % heights.length];
-  };
 
   // Определяем, что показывать
   const showRecommendations = searchQuery.trim().length > 0;
@@ -292,14 +287,10 @@ export const RecommendationsPage = () => {
                         src={imageUrl}
                         alt={description}
                         className="recommendations-page__image"
-                        style={{ height: `${getRandomHeight(index)}px` }}
                         loading="lazy"
                       />
                     ) : (
-                      <div 
-                        className="recommendations-page__image"
-                        style={{ height: `${getRandomHeight(index)}px` }}
-                      ></div>
+                      <div className="recommendations-page__image"></div>
                     )}
                     <img 
                       src={isLiked ? heartIconActive : heartIcon} 
