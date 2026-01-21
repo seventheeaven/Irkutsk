@@ -51,6 +51,7 @@ export const MyCollectionsPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
+  const tokenVerifiedRef = useRef(false);
 
   // Получаем список зарегистрированных пользователей
   const getRegisteredUsers = (): { email: string; profile: UserProfile }[] => {
@@ -72,10 +73,14 @@ export const MyCollectionsPage = () => {
 
   // Сначала проверяем токен, если он есть в URL
   useEffect(() => {
+    // Если токен уже проверен, не проверяем повторно
+    if (tokenVerifiedRef.current) return;
+
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    
+    // Если токена нет, загружаем профиль из localStorage
     if (!token) {
-      // Если токена нет, загружаем профиль из localStorage
       const savedProfile = localStorage.getItem('userProfile');
       if (savedProfile) {
         try {
@@ -92,8 +97,11 @@ export const MyCollectionsPage = () => {
       return;
     }
 
-    // Если есть токен - проверяем его
+    // Если есть токен - проверяем его (не проверяем повторно, если уже проверяем)
+    if (isVerifyingToken) return;
+    
     setIsVerifyingToken(true);
+    tokenVerifiedRef.current = true;
 
     (async () => {
       try {
@@ -117,6 +125,9 @@ export const MyCollectionsPage = () => {
         const users = getRegisteredUsers();
         const existingUser = users.find(u => u.email === userEmail);
 
+        // Чистим URL сразу после успешной проверки
+        window.history.replaceState({}, document.title, window.location.pathname);
+
         if (existingUser) {
           // Пользователь уже зарегистрирован - логиним сразу
           localStorage.setItem('userProfile', JSON.stringify(existingUser.profile));
@@ -130,8 +141,6 @@ export const MyCollectionsPage = () => {
         }
 
         setIsVerifyingToken(false);
-        // Чистим URL
-        window.history.replaceState({}, document.title, window.location.pathname);
       } catch {
         setError('Не удалось войти по ссылке');
         setIsVerifyingToken(false);
