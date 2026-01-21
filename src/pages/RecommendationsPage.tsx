@@ -37,6 +37,7 @@ export const RecommendationsPage = () => {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [publications, setPublications] = useState<Publication[]>([]);
+  const [imageLoadingStates, setImageLoadingStates] = useState<Map<string, boolean>>(new Map());
   
   // Создаем больше карточек для эффекта Pinterest
   const allPlaces = [...mockPlaces, ...mockPlaces, ...mockPlaces];
@@ -88,7 +89,8 @@ export const RecommendationsPage = () => {
       setLoading(true);
       try {
         // Загружаем изображения только для мест (не для публикаций, у них уже есть изображения)
-        const irkutskImages = await getIrkutskImages(allPlaces.length);
+        // Используем меньшее количество для более быстрой загрузки
+        const irkutskImages = await getIrkutskImages(Math.min(allPlaces.length, 20));
         setImages(irkutskImages);
       } catch (error) {
         console.error('Error loading images:', error);
@@ -248,7 +250,8 @@ export const RecommendationsPage = () => {
                 if (showRecommendations) {
                   const rec = item as Recommendation;
                   const image = images[index] || images[index % images.length];
-                  imageUrl = image?.urls?.regular || image?.urls?.small || '';
+                  // Используем small для более быстрой загрузки
+                  imageUrl = image?.urls?.small || '';
                   description = rec.description;
                   title = rec.name;
                   itemId = `rec-${index}`;
@@ -269,7 +272,8 @@ export const RecommendationsPage = () => {
                     const place = allPlaces[placeIndex];
                     if (place) {
                       const image = images[placeIndex] || images[placeIndex % images.length];
-                      imageUrl = image?.urls?.regular || image?.urls?.small || '';
+                      // Используем small для более быстрой загрузки
+                      imageUrl = image?.urls?.small || '';
                       description = place.description;
                       title = place.name;
                       itemId = `${place.id}-${placeIndex}`;
@@ -278,6 +282,8 @@ export const RecommendationsPage = () => {
                 }
                 
                 const isLiked = likedItems.has(itemId);
+                const imageKey = `${itemId}-${imageUrl}`;
+                const isImageLoading = imageLoadingStates.get(imageKey) !== false;
                 
                 return (
                   <div 
@@ -290,14 +296,33 @@ export const RecommendationsPage = () => {
                     }}
                   >
                     {imageUrl ? (
-                      <img 
-                        src={imageUrl}
-                        alt={description}
-                        className="recommendations-page__image"
-                        loading="lazy"
-                      />
+                      <>
+                        {isImageLoading && (
+                          <div className="recommendations-page__image-placeholder"></div>
+                        )}
+                        <img 
+                          src={imageUrl}
+                          alt={description}
+                          className={`recommendations-page__image ${isImageLoading ? 'recommendations-page__image--loading' : ''}`}
+                          loading="lazy"
+                          onLoad={() => {
+                            setImageLoadingStates(prev => {
+                              const newMap = new Map(prev);
+                              newMap.set(imageKey, false);
+                              return newMap;
+                            });
+                          }}
+                          onError={() => {
+                            setImageLoadingStates(prev => {
+                              const newMap = new Map(prev);
+                              newMap.set(imageKey, false);
+                              return newMap;
+                            });
+                          }}
+                        />
+                      </>
                     ) : (
-                      <div className="recommendations-page__image"></div>
+                      <div className="recommendations-page__image-placeholder"></div>
                     )}
                     <img 
                       src={isLiked ? heartIconActive : heartIcon} 
