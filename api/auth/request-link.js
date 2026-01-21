@@ -33,12 +33,17 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    // Нормализуем email (нижний регистр, без пробелов)
+    const normalizedEmail = email.toLowerCase().trim();
+    
     const isLogin = mode === 'login';
     
     // Если это вход, проверяем существует ли пользователь
     if (isLogin) {
       try {
-        const existingProfile = await kv.get(`user:${email}`);
+        console.log('request-link: Checking user existence for login', { email: normalizedEmail });
+        const existingProfile = await kv.get(`user:${normalizedEmail}`);
+        console.log('request-link: User check result', { exists: !!existingProfile });
         if (!existingProfile) {
           res.status(400).json({ error: 'Пользователь с таким email не зарегистрирован' });
           return;
@@ -53,8 +58,8 @@ module.exports = async function handler(req, res) {
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = sha256(token);
 
-    // Store token hash -> email with TTL 15 minutes
-    await kv.set(`magiclink:${tokenHash}`, { email, mode: mode || 'register' }, { ex: 60 * 15 });
+    // Store token hash -> email with TTL 15 minutes (используем нормализованный email)
+    await kv.set(`magiclink:${tokenHash}`, { email: normalizedEmail, mode: mode || 'register' }, { ex: 60 * 15 });
 
     const baseUrl = getBaseUrl(req);
     const link = `${baseUrl}/auth/callback?token=${encodeURIComponent(token)}`;
@@ -69,7 +74,7 @@ module.exports = async function handler(req, res) {
 
     await resend.emails.send({
       from: 'SYUDA <onboarding@resend.dev>',
-      to: [email],
+      to: [normalizedEmail],
       subject: subject,
       html: `
         <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">

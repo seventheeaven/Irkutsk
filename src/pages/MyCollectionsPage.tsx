@@ -61,8 +61,12 @@ export const MyCollectionsPage = () => {
   // Загружаем профиль пользователя из KV
   const loadUserProfile = async (userEmail: string): Promise<UserProfile | null> => {
     try {
-      const resp = await fetch(`/api/users/profile?email=${encodeURIComponent(userEmail)}`);
+      // Нормализуем email
+      const normalizedEmail = userEmail.toLowerCase().trim();
+      console.log('loadUserProfile: Loading profile', { original: userEmail, normalized: normalizedEmail });
+      const resp = await fetch(`/api/users/profile?email=${encodeURIComponent(normalizedEmail)}`);
       const data = await resp.json();
+      console.log('loadUserProfile: Response', { ok: resp.ok, hasProfile: !!data.profile });
       if (resp.ok && data.profile) {
         return data.profile;
       }
@@ -301,20 +305,26 @@ export const MyCollectionsPage = () => {
       return;
     }
 
+    // Нормализуем email
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log('handleSendMagicLink: Sending magic link', { original: email, normalized: normalizedEmail, mode: authMode });
+
     try {
       setIsSendingLink(true);
       const resp = await fetch('/api/auth/request-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, mode: authMode }),
+        body: JSON.stringify({ email: normalizedEmail, mode: authMode }),
       });
       const data = await resp.json();
+      console.log('handleSendMagicLink: Response', { ok: resp.ok, data });
       if (!resp.ok) {
         setError(data?.error || 'Не удалось отправить ссылку');
         return;
       }
-      setLinkSentTo(email);
-    } catch {
+      setLinkSentTo(normalizedEmail);
+    } catch (error) {
+      console.error('handleSendMagicLink: Error', error);
       setError('Не удалось отправить ссылку');
     } finally {
       setIsSendingLink(false);
@@ -532,25 +542,28 @@ export const MyCollectionsPage = () => {
       return;
     }
 
+    // Нормализуем email
+    const normalizedEmail = verifiedEmail.toLowerCase().trim();
+    
     const newProfile: UserProfile = {
       name: profileName.trim(),
       username: normalizedUsername,
       description: '',
       avatar: undefined,
-      email: verifiedEmail,
+      email: normalizedEmail,
     };
 
     // Сохраняем пользователя в KV
-    console.log('MyCollectionsPage: Saving profile', { email: verifiedEmail, profile: newProfile });
-    const success = await saveUserProfile(verifiedEmail, newProfile);
+    console.log('MyCollectionsPage: Saving profile', { original: verifiedEmail, normalized: normalizedEmail, profile: newProfile });
+    const success = await saveUserProfile(normalizedEmail, newProfile);
     console.log('MyCollectionsPage: Save result', success);
     
     if (success) {
       // Сохраняем в localStorage для обратной совместимости
       localStorage.setItem('userProfile', JSON.stringify(newProfile));
       
-      // Сохраняем в cookies для синхронизации между браузерами
-      document.cookie = `userEmail=${verifiedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      // Сохраняем в cookies для синхронизации между браузерами (используем нормализованный email)
+      document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
       
       setProfile(newProfile);
       setHasProfile(true);

@@ -12,7 +12,12 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      const profile = await kv.get(`user:${email}`);
+      // Нормализуем email
+      const normalizedEmail = email.toLowerCase().trim();
+      console.log('profile GET: Looking for user', { original: email, normalized: normalizedEmail });
+      
+      const profile = await kv.get(`user:${normalizedEmail}`);
+      console.log('profile GET: Found profile', { exists: !!profile });
       
       if (!profile) {
         res.status(404).json({ error: 'Profile not found' });
@@ -33,16 +38,21 @@ module.exports = async function handler(req, res) {
         return;
       }
 
+      // Нормализуем email
+      const normalizedEmail = email.toLowerCase().trim();
+      console.log('profile POST: Saving profile', { original: email, normalized: normalizedEmail, profile });
+
       // Получаем старый профиль, чтобы обновить индекс username
-      const oldProfile = await kv.get(`user:${email}`);
+      const oldProfile = await kv.get(`user:${normalizedEmail}`);
       
       // Если username изменился, удаляем старый индекс
       if (oldProfile && oldProfile.username && oldProfile.username !== profile.username) {
         await kv.del(`username:${oldProfile.username}`);
       }
 
-      // Сохраняем профиль
-      await kv.set(`user:${email}`, profile);
+      // Сохраняем профиль с нормализованным email
+      await kv.set(`user:${normalizedEmail}`, profile);
+      console.log('profile POST: Profile saved successfully');
       
       // Также сохраняем в индекс по username для проверки уникальности
       if (profile.username) {
