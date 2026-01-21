@@ -37,9 +37,15 @@ module.exports = async function handler(req, res) {
     
     // Если это вход, проверяем существует ли пользователь
     if (isLogin) {
-      const existingProfile = await kv.get(`user:${email}`);
-      if (!existingProfile) {
-        res.status(400).json({ error: 'Пользователь с таким email не зарегистрирован' });
+      try {
+        const existingProfile = await kv.get(`user:${email}`);
+        if (!existingProfile) {
+          res.status(400).json({ error: 'Пользователь с таким email не зарегистрирован' });
+          return;
+        }
+      } catch (e) {
+        console.error('Error checking user existence:', e);
+        res.status(500).json({ error: 'Ошибка при проверке пользователя' });
         return;
       }
     }

@@ -76,12 +76,14 @@ export const MyCollectionsPage = () => {
   // Сохраняем профиль пользователя в KV
   const saveUserProfile = async (userEmail: string, userProfile: UserProfile): Promise<boolean> => {
     try {
+      console.log('saveUserProfile: Saving', { email: userEmail, profile: userProfile });
       const resp = await fetch('/api/users/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: userEmail, profile: userProfile }),
       });
       const data = await resp.json();
+      console.log('saveUserProfile: Response', { ok: resp.ok, data });
       return resp.ok && data.ok;
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -539,15 +541,21 @@ export const MyCollectionsPage = () => {
     };
 
     // Сохраняем пользователя в KV
+    console.log('MyCollectionsPage: Saving profile', { email: verifiedEmail, profile: newProfile });
     const success = await saveUserProfile(verifiedEmail, newProfile);
+    console.log('MyCollectionsPage: Save result', success);
     
     if (success) {
-      // Также сохраняем в localStorage для обратной совместимости
+      // Сохраняем в localStorage для обратной совместимости
       localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      
+      // Сохраняем в cookies для синхронизации между браузерами
+      document.cookie = `userEmail=${verifiedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      
       setProfile(newProfile);
       setHasProfile(true);
     } else {
-      setError('Не удалось сохранить профиль');
+      setError('Не удалось сохранить профиль. Попробуйте еще раз.');
     }
   };
 

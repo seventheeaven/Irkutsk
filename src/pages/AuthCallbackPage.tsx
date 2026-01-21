@@ -19,6 +19,7 @@ export const AuthCallbackPage = () => {
 
     (async () => {
       try {
+        console.log('AuthCallbackPage: Verifying token...');
         // Проверяем токен
         const resp = await fetch('/api/auth/verify', {
           method: 'POST',
@@ -27,6 +28,7 @@ export const AuthCallbackPage = () => {
         });
         
         const data = await resp.json();
+        console.log('AuthCallbackPage: Verify response', { ok: resp.ok, data });
         
         if (!resp.ok) {
           setError(data?.error || 'Неверный или истекший токен');
@@ -35,14 +37,25 @@ export const AuthCallbackPage = () => {
         }
 
         const userEmail = data.email;
+        console.log('AuthCallbackPage: User email', userEmail);
 
         // Проверяем, есть ли уже профиль для этого email
-        const profileResp = await fetch(`/api/users/profile?email=${encodeURIComponent(userEmail)}`);
-        const profileData = await profileResp.json();
+        let profileData;
+        let profileResp;
+        try {
+          profileResp = await fetch(`/api/users/profile?email=${encodeURIComponent(userEmail)}`);
+          profileData = await profileResp.json();
+        } catch (e) {
+          console.error('Error fetching profile:', e);
+          setError('Ошибка при проверке профиля');
+          setStatus('error');
+          return;
+        }
 
         if (profileResp.ok && profileData.profile) {
           // Пользователь уже зарегистрирован - сохраняем сессию
           const profile = profileData.profile;
+          console.log('AuthCallbackPage: Existing user found', profile);
           
           // Сохраняем в localStorage (для текущего браузера)
           localStorage.setItem('userProfile', JSON.stringify(profile));
@@ -58,6 +71,7 @@ export const AuthCallbackPage = () => {
           }, 1000);
         } else {
           // Новый пользователь - сохраняем email в sessionStorage и перенаправляем на настройку профиля
+          console.log('AuthCallbackPage: New user, redirecting to profile setup');
           sessionStorage.setItem('pendingEmail', userEmail);
           document.cookie = `pendingEmail=${userEmail}; path=/; max-age=${60 * 60}; SameSite=Lax`;
           
@@ -69,7 +83,7 @@ export const AuthCallbackPage = () => {
         }
       } catch (e) {
         console.error('Error during token verification:', e);
-        setError('Не удалось войти по ссылке');
+        setError(`Не удалось войти по ссылке: ${e instanceof Error ? e.message : 'Неизвестная ошибка'}`);
         setStatus('error');
       }
     })();
