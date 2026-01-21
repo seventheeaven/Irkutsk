@@ -36,6 +36,9 @@ module.exports = async function handler(req, res) {
     // Нормализуем email (нижний регистр, без пробелов)
     const normalizedEmail = email.toLowerCase().trim();
     
+    // Определяем режим (login или register)
+    const isLogin = mode === 'login';
+    
     // Для регистрации не проверяем существование пользователя
     // Magic link используется только для регистрации
 
