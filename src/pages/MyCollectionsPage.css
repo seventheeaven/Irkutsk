@@ -849,6 +849,27 @@
 }
 
 /* Стили для формы авторизации через email */
+.my-collections-page__auth-back-btn {
+  position: absolute;
+  top: 20px;
+  left: 16px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111111;
+  cursor: pointer;
+  padding: 8px 0;
+  text-align: left;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.my-collections-page__auth-back-btn:active {
+  opacity: 0.7;
+}
+
 .my-collections-page__auth-form-container {
   width: calc(100% - 32px);
   position: absolute;

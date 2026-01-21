@@ -44,6 +44,7 @@ export const MyCollectionsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [publicationTitle, setPublicationTitle] = useState('');
+  const [authStep, setAuthStep] = useState<'initial' | 'email'>('initial');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -295,25 +296,60 @@ export const MyCollectionsPage = () => {
 
 
 
+  const handleBackClick = () => {
+    setAuthStep('initial');
+    setError('');
+    setEmail('');
+    setPassword('');
+    setName('');
+  };
+
   // Если профиля нет, показываем страницу входа
   if (!hasProfile) {
+    // Начальный экран с кнопкой "Войти"
+    if (authStep === 'initial') {
+      return (
+        <div className="my-collections-page">
+          <div className="my-collections-page__create-account">
+            <div className="my-collections-page__create-account-gradient">
+              <img 
+                src={signInImage} 
+                alt="Sign in" 
+                className="my-collections-page__sign-in-image"
+              />
+              <img 
+                src={logoSuda} 
+                alt="Logo Suda" 
+                className="my-collections-page__logo-suda"
+              />
+              <p className="my-collections-page__create-account-text">
+                Сохраняйте места<br />и делитесь своими публикациями
+              </p>
+              <div className="my-collections-page__create-account-buttons">
+                <button
+                  className="my-collections-page__create-account-register-btn"
+                  onClick={() => setAuthStep('email')}
+                >
+                  Войти
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Экран с формой авторизации
     return (
       <div className="my-collections-page">
         <div className="my-collections-page__create-account">
           <div className="my-collections-page__create-account-gradient">
-            <img 
-              src={signInImage} 
-              alt="Sign in" 
-              className="my-collections-page__sign-in-image"
-            />
-            <img 
-              src={logoSuda} 
-              alt="Logo Suda" 
-              className="my-collections-page__logo-suda"
-            />
-            <p className="my-collections-page__create-account-text">
-              Сохраняйте места<br />и делитесь своими публикациями
-            </p>
+            <button 
+              className="my-collections-page__auth-back-btn"
+              onClick={handleBackClick}
+            >
+              ← Назад
+            </button>
             <div className="my-collections-page__auth-form-container">
               <div className="my-collections-page__auth-tabs">
                 <button
