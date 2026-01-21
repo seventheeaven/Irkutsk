@@ -11,6 +11,10 @@ interface Collection {
   name: string;
   imageUrls: string[];
   itemCount: number;
+  userId?: string;
+  authorName?: string;
+  authorUsername?: string;
+  createdAt?: number;
 }
 
 interface LikedItem {
@@ -69,6 +73,17 @@ export const MyCollectionsPage = () => {
       users.push({ email: userEmail, profile: userProfile });
     }
     localStorage.setItem('registeredUsers', JSON.stringify(users));
+  };
+
+  // Получаем все публикации из localStorage
+  const getAllPublications = (): Collection[] => {
+    const publications = localStorage.getItem('allPublications');
+    return publications ? JSON.parse(publications) : [];
+  };
+
+  // Сохраняем все публикации в localStorage
+  const saveAllPublications = (publications: Collection[]) => {
+    localStorage.setItem('allPublications', JSON.stringify(publications));
   };
 
   // Сначала проверяем токен, если он есть в URL
@@ -147,6 +162,17 @@ export const MyCollectionsPage = () => {
       }
     })();
   }, []);
+
+  // Загружаем публикации текущего пользователя
+  useEffect(() => {
+    if (!hasProfile || !profile) return;
+
+    const allPublications = getAllPublications();
+    const userPublications = allPublications.filter(
+      pub => pub.userId === profile.email || pub.authorName === profile.name
+    );
+    setCollections(userPublications);
+  }, [hasProfile, profile]);
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,16 +329,37 @@ export const MyCollectionsPage = () => {
   };
 
   const handlePublish = () => {
-    if (publicationTitle.trim() && selectedImage) {
+    if (publicationTitle.trim() && selectedImage && profile) {
       const newCollection: Collection = {
         id: Date.now().toString(),
         name: publicationTitle.trim(),
         imageUrls: [selectedImage],
-        itemCount: 1
+        itemCount: 1,
+        userId: profile.email,
+        authorName: profile.name,
+        authorUsername: profile.username,
+        createdAt: Date.now()
       };
+      
+      // Сохраняем в общий список всех публикаций
+      const allPublications = getAllPublications();
+      allPublications.push(newCollection);
+      saveAllPublications(allPublications);
+      
+      // Обновляем локальное состояние
       setCollections([...collections, newCollection]);
       handleCloseModal();
     }
+  };
+
+  const handleDeletePublication = (publicationId: string) => {
+    // Удаляем из общего списка
+    const allPublications = getAllPublications();
+    const filtered = allPublications.filter(pub => pub.id !== publicationId);
+    saveAllPublications(filtered);
+    
+    // Обновляем локальное состояние
+    setCollections(collections.filter(c => c.id !== publicationId));
   };
 
 
@@ -584,6 +631,13 @@ export const MyCollectionsPage = () => {
                   
                   return (
                     <div key={collection.id} className="my-collections-page__collection-card">
+                      <button
+                        className="my-collections-page__collection-delete"
+                        onClick={() => handleDeletePublication(collection.id)}
+                        title="Удалить публикацию"
+                      >
+                        ✕
+                      </button>
                       {imageUrl ? (
                         <img 
                           src={imageUrl}

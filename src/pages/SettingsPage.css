@@ -149,6 +149,82 @@
   color: #ffffff;
 }
 
+.settings-page__error {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #FFE9BD;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
+  text-align: center;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.settings-page__avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-page__avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #F5F5F5;
+  border: 2px dashed #D9D9D9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  overflow: hidden;
+}
+
+.settings-page__avatar-preview:active {
+  background: #E0E0E0;
+}
+
+.settings-page__avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-page__avatar-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.settings-page__avatar-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #BABABA;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.settings-page__avatar-remove {
+  padding: 8px 16px;
+  background: transparent;
+  color: #FF3B30;
+  border: 1px solid #FF3B30;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  transition: all 0.2s ease;
+}
+
+.settings-page__avatar-remove:active {
+  background: #FF3B30;
+  color: #ffffff;
+}
+
 
 
 

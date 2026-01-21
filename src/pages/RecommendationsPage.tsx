@@ -16,6 +16,17 @@ interface LikedItem {
   address?: string;
 }
 
+interface Publication {
+  id: string;
+  name: string;
+  imageUrls: string[];
+  itemCount: number;
+  userId?: string;
+  authorName?: string;
+  authorUsername?: string;
+  createdAt?: number;
+}
+
 export const RecommendationsPage = () => {
   const [images, setImages] = useState<UnsplashImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,9 +35,25 @@ export const RecommendationsPage = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const [publications, setPublications] = useState<Publication[]>([]);
   
   // Создаем больше карточек для эффекта Pinterest
   const allPlaces = [...mockPlaces, ...mockPlaces, ...mockPlaces];
+
+  // Загружаем все публикации всех пользователей
+  useEffect(() => {
+    const allPublications = localStorage.getItem('allPublications');
+    if (allPublications) {
+      try {
+        const pubs: Publication[] = JSON.parse(allPublications);
+        // Сортируем по дате создания (новые сначала)
+        pubs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        setPublications(pubs);
+      } catch (error) {
+        console.error('Error loading publications:', error);
+      }
+    }
+  }, []);
 
   // Загружаем лайки из localStorage
   useEffect(() => {
@@ -45,6 +72,7 @@ export const RecommendationsPage = () => {
     const loadImages = async () => {
       setLoading(true);
       try {
+        // Загружаем изображения только для мест (не для публикаций, у них уже есть изображения)
         const irkutskImages = await getIrkutskImages(allPlaces.length);
         setImages(irkutskImages);
       } catch (error) {
@@ -149,7 +177,20 @@ export const RecommendationsPage = () => {
 
   // Определяем, что показывать
   const showRecommendations = searchQuery.trim().length > 0;
-  const displayItems = showRecommendations ? recommendations : allPlaces;
+  
+  // Объединяем публикации с местами (публикации показываем первыми)
+  const displayItems = showRecommendations 
+    ? recommendations 
+    : [...publications.map(pub => ({
+        id: `pub-${pub.id}`,
+        name: pub.name,
+        description: pub.name,
+        category: 'публикация' as const,
+        address: '',
+        image: pub.imageUrls[0],
+        authorName: pub.authorName,
+        authorUsername: pub.authorUsername,
+      })), ...allPlaces];
 
   return (
     <div className="recommendations-page">
@@ -188,21 +229,39 @@ export const RecommendationsPage = () => {
           ) : (
             <div className="recommendations-page__grid">
               {displayItems.map((item, index) => {
-                const image = images[index] || images[index % images.length];
-                const imageUrl = image?.urls?.regular || image?.urls?.small || '';
-                const description = showRecommendations 
-                  ? (item as Recommendation).description 
-                  : (item as typeof mockPlaces[0]).description;
-                const title = showRecommendations 
-                  ? (item as Recommendation).name 
-                  : (item as typeof mockPlaces[0]).name;
-                const itemId = showRecommendations 
-                  ? `rec-${index}` 
-                  : `${(item as typeof mockPlaces[0]).id}-${index}`;
+                // Определяем, является ли элемент публикацией
+                const isPublication = !showRecommendations && 'isPublication' in item && (item as any).isPublication;
+                
+                let imageUrl = '';
+                let description = '';
+                let title = '';
+                let itemId = '';
+                let address: string | undefined = undefined;
+                
+                if (showRecommendations) {
+                  const rec = item as Recommendation;
+                  const image = images[index] || images[index % images.length];
+                  imageUrl = image?.urls?.regular || image?.urls?.small || '';
+                  description = rec.description;
+                  title = rec.name;
+                  itemId = `rec-${index}`;
+                  address = rec.address;
+                } else if (isPublication) {
+                  const pub = item as any;
+                  imageUrl = pub.image || '';
+                  description = pub.description || pub.name;
+                  title = pub.name;
+                  itemId = `pub-${pub.id}`;
+                } else {
+                  const place = item as typeof mockPlaces[0];
+                  const image = images[index] || images[index % images.length];
+                  imageUrl = image?.urls?.regular || image?.urls?.small || '';
+                  description = place.description;
+                  title = place.name;
+                  itemId = `${place.id}-${index}`;
+                }
+                
                 const isLiked = likedItems.has(itemId);
-                const address = showRecommendations && (item as Recommendation).address 
-                  ? (item as Recommendation).address 
-                  : undefined;
                 
                 return (
                   <div 
@@ -217,7 +276,7 @@ export const RecommendationsPage = () => {
                     {imageUrl ? (
                       <img 
                         src={imageUrl}
-                        alt={image?.alt_description || description}
+                        alt={description}
                         className="recommendations-page__image"
                         style={{ height: `${getRandomHeight(index)}px` }}
                         loading="lazy"
