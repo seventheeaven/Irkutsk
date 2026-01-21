@@ -617,12 +617,12 @@
 
 /* Стили для формы создания аккаунта */
 .my-collections-page__create-account {
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
   position: relative;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .my-collections-page__create-account-gradient {
@@ -872,12 +872,14 @@
 
 .my-collections-page__auth-form-container {
   width: calc(100% - 32px);
-  position: absolute;
-  top: calc(200px + 100px + 32px + 50px + 72px); /* Та же позиция, что и кнопка "Войти" */
-  left: 16px;
-  right: 16px;
+  position: relative;
+  margin-top: 80px;
+  margin-left: 16px;
+  margin-right: 16px;
+  margin-bottom: 40px;
   z-index: 10;
   box-sizing: border-box;
+  padding-bottom: 40px;
 }
 
 .my-collections-page__auth-tabs {
