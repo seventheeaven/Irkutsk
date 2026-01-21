@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import plusIcon from '../../img/plus.svg';
 import collectionsImage from '../../img/collections.jpg';
@@ -30,7 +29,6 @@ interface UserProfile {
 }
 
 export const MyCollectionsPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState('collections');
@@ -44,38 +42,6 @@ export const MyCollectionsPage = () => {
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
   const telegramWidgetContainerRef = useRef<HTMLDivElement>(null);
-
-  // Обработка авторизации через Telegram (параметры из URL)
-  useEffect(() => {
-    const id = searchParams.get('id');
-    const firstName = searchParams.get('first_name');
-    const lastName = searchParams.get('last_name');
-    const username = searchParams.get('username');
-    const photoUrl = searchParams.get('photo_url');
-    const hash = searchParams.get('hash');
-    const authDate = searchParams.get('auth_date');
-
-    // Если есть параметры авторизации от Telegram
-    if (id && hash && authDate) {
-      // Создаем профиль пользователя из данных Telegram
-      const newProfile: UserProfile = {
-        name: `${firstName || ''} ${lastName || ''}`.trim() || 'Пользователь',
-        username: username ? `@${username}` : `@user${id}`,
-        description: '',
-        avatar: photoUrl || undefined
-      };
-      
-      // Сохраняем профиль в localStorage
-      localStorage.setItem('userProfile', JSON.stringify(newProfile));
-      
-      // Обновляем состояние
-      setProfile(newProfile);
-      setHasProfile(true);
-      
-      // Очищаем параметры из URL
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
 
   // Загружаем профиль из localStorage
   useEffect(() => {
@@ -94,6 +60,33 @@ export const MyCollectionsPage = () => {
     }
   }, []);
 
+  // Глобальная функция для обработки авторизации через Telegram
+  useEffect(() => {
+    (window as any).onTelegramAuth = (user: any) => {
+      console.log('TELEGRAM USER:', user);
+      
+      // Создаем профиль пользователя из данных Telegram
+      const newProfile: UserProfile = {
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь',
+        username: user.username ? `@${user.username}` : `@user${user.id}`,
+        description: '',
+        avatar: user.photo_url || undefined
+      };
+      
+      // Сохраняем профиль в localStorage
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      
+      // Обновляем состояние
+      setProfile(newProfile);
+      setHasProfile(true);
+    };
+
+    // Очистка при размонтировании
+    return () => {
+      delete (window as any).onTelegramAuth;
+    };
+  }, []);
+
   // Загрузка Telegram виджета
   useEffect(() => {
     if (!hasProfile && telegramWidgetContainerRef.current) {
@@ -109,8 +102,8 @@ export const MyCollectionsPage = () => {
           script.src = 'https://telegram.org/js/telegram-widget.js?22';
           script.setAttribute('data-telegram-login', 'suda_sign_in_bot');
           script.setAttribute('data-size', 'large');
-          script.setAttribute('data-auth-url', 'https://irkutsk.vercel.app/my-collections');
-          script.setAttribute('data-request-access', 'write');
+          script.setAttribute('data-userpic', 'false');
+          script.setAttribute('data-onauth', 'onTelegramAuth(user)');
 
           // Обработка загрузки скрипта
           script.onerror = (error) => {
