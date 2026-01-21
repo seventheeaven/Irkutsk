@@ -57,18 +57,30 @@ export const Header = () => {
   };
 
   const handleLogout = () => {
+    // Закрываем меню
+    handleMenuClose();
+    
+    // Устанавливаем флаг выхода в sessionStorage
+    sessionStorage.setItem('loggedOut', 'true');
+    
     // Удаляем профиль из localStorage
     localStorage.removeItem('userProfile');
     
-    // Удаляем cookies
-    document.cookie = 'userEmail=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'pendingEmail=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    // Удаляем cookies (используем все возможные варианты для надежности)
+    const cookiesToDelete = ['userEmail', 'pendingEmail'];
+    cookiesToDelete.forEach(cookieName => {
+      // Удаляем для текущего пути
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      // Удаляем для корневого пути
+      document.cookie = `${cookieName}=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      // Удаляем без указания домена
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    });
     
     setHasProfile(false);
-    handleMenuClose();
-    navigate('/my-collections');
-    // Перезагружаем страницу, чтобы обновить состояние
-    window.location.reload();
+    
+    // Перенаправляем на страницу входа и перезагружаем
+    window.location.href = '/my-collections';
   };
 
   return (

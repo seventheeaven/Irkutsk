@@ -154,6 +154,14 @@ export const MyCollectionsPage = () => {
       return null;
     };
 
+    // Проверяем, не был ли выполнен выход (проверяем флаг в sessionStorage)
+    const wasLoggedOut = sessionStorage.getItem('loggedOut');
+    if (wasLoggedOut === 'true') {
+      sessionStorage.removeItem('loggedOut');
+      setHasProfile(false);
+      return;
+    }
+
     const userEmail = getCookie('userEmail');
     if (userEmail) {
       (async () => {
