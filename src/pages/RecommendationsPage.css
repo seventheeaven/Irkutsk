@@ -65,6 +65,11 @@
   align-self: start;
 }
 
+.recommendations-page__image-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .recommendations-page__image {
   width: 100%;
   background: #D9D9D9;

@@ -283,7 +283,7 @@ export const RecommendationsPage = () => {
                 
                 const isLiked = likedItems.has(itemId);
                 const imageKey = `${itemId}-${imageUrl}`;
-                const isImageLoading = imageLoadingStates.get(imageKey) !== false;
+                const isImageLoading = imageUrl ? imageLoadingStates.get(imageKey) !== false : false;
                 
                 return (
                   <div 
@@ -295,11 +295,11 @@ export const RecommendationsPage = () => {
                       }
                     }}
                   >
-                    {imageUrl ? (
-                      <>
-                        {isImageLoading && (
-                          <div className="recommendations-page__image-placeholder"></div>
-                        )}
+                    <div className="recommendations-page__image-wrapper">
+                      {isImageLoading && (
+                        <div className="recommendations-page__image-placeholder"></div>
+                      )}
+                      {imageUrl ? (
                         <img 
                           src={imageUrl}
                           alt={description}
@@ -320,10 +320,10 @@ export const RecommendationsPage = () => {
                             });
                           }}
                         />
-                      </>
-                    ) : (
-                      <div className="recommendations-page__image-placeholder"></div>
-                    )}
+                      ) : (
+                        <div className="recommendations-page__image-placeholder"></div>
+                      )}
+                    </div>
                     <img 
                       src={isLiked ? heartIconActive : heartIcon} 
                       alt="Like" 
