@@ -25,6 +25,7 @@ interface Publication {
   authorName?: string;
   authorUsername?: string;
   createdAt?: number;
+  description?: string;
 }
 
 export const RecommendationsPage = () => {
