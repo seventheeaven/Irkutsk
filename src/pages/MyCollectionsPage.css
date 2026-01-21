@@ -857,8 +857,8 @@
 .my-collections-page__create-account-login-btn {
   width: 100%;
   height: 60px;
-  background: #EDEDED;
-  border: none;
+  background: #FFFFFF;
+  border: 1px solid #B9B9B9;
   border-radius: 32px;
   font-size: 20px;
   font-weight: 600;
