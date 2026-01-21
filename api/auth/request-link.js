@@ -1,18 +1,18 @@
-import { kv } from '@vercel/kv';
-import { Resend } from 'resend';
-import crypto from 'crypto';
+const { kv } = require('@vercel/kv');
+const { Resend } = require('resend');
+const crypto = require('crypto');
 
-function sha256(input: string) {
+function sha256(input) {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
-function getBaseUrl(req: any) {
-  const proto = (req.headers['x-forwarded-proto'] || 'https') as string;
-  const host = (req.headers['x-forwarded-host'] || req.headers.host) as string;
+function getBaseUrl(req) {
+  const proto = (req.headers['x-forwarded-proto'] || 'https');
+  const host = (req.headers['x-forwarded-host'] || req.headers.host);
   return `${proto}://${host}`;
 }
 
-export default async function handler(req: any, res: any) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -63,11 +63,9 @@ export default async function handler(req: any, res: any) {
     });
 
     res.status(200).json({ ok: true });
-  } catch (e: any) {
+  } catch (e) {
     console.error('Magic link error:', e);
     const errorMessage = e?.message || 'Failed to send magic link';
     res.status(500).json({ error: errorMessage });
   }
-}
-
-
+};
