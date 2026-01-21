@@ -57,7 +57,13 @@ export const Header = () => {
   };
 
   const handleLogout = () => {
+    // Удаляем профиль из localStorage
     localStorage.removeItem('userProfile');
+    
+    // Удаляем cookies
+    document.cookie = 'userEmail=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'pendingEmail=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
     setHasProfile(false);
     handleMenuClose();
     navigate('/my-collections');
