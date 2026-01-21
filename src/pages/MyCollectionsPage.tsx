@@ -26,12 +26,7 @@ interface UserProfile {
   username: string;
   description: string;
   avatar?: string;
-}
-
-interface UserAccount {
-  email: string;
-  password: string;
-  profile: UserProfile;
+  email?: string;
 }
 
 export const MyCollectionsPage = () => {
@@ -45,32 +40,13 @@ export const MyCollectionsPage = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [publicationTitle, setPublicationTitle] = useState('');
   const [authStep, setAuthStep] = useState<'initial' | 'email'>('initial');
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [isSendingLink, setIsSendingLink] = useState(false);
+  const [linkSentTo, setLinkSentTo] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
-
-  // Получаем список зарегистрированных пользователей
-  const getRegisteredUsers = (): UserAccount[] => {
-    const users = localStorage.getItem('registeredUsers');
-    return users ? JSON.parse(users) : [];
-  };
-
-  // Сохраняем зарегистрированного пользователя
-  const saveUser = (userAccount: UserAccount) => {
-    const users = getRegisteredUsers();
-    const existingUserIndex = users.findIndex(u => u.email === userAccount.email);
-    if (existingUserIndex >= 0) {
-      users[existingUserIndex] = userAccount;
-    } else {
-      users.push(userAccount);
-    }
-    localStorage.setItem('registeredUsers', JSON.stringify(users));
-  };
 
   // Загружаем профиль из localStorage
   useEffect(() => {
@@ -89,72 +65,68 @@ export const MyCollectionsPage = () => {
     }
   }, []);
 
-  // Обработка регистрации
-  const handleRegister = (e: React.FormEvent) => {
+  // Если пользователь вернулся по magic-link, подтверждаем токен
+  useEffect(() => {
+    if (hasProfile) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) return;
+
+    (async () => {
+      try {
+        setError('');
+        const resp = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          setError(data?.error || 'Не удалось войти по ссылке');
+          return;
+        }
+
+        localStorage.setItem('userProfile', JSON.stringify(data.profile));
+        setProfile(data.profile);
+        setHasProfile(true);
+
+        // Чистим URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch {
+        setError('Не удалось войти по ссылке');
+      }
+    })();
+  }, [hasProfile]);
+
+  const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLinkSentTo(null);
 
-    if (!email || !password || !name) {
-      setError('Заполните все поля');
-      return;
-    }
-
-    if (!email.includes('@')) {
+    if (!email || !email.includes('@')) {
       setError('Введите корректный email');
       return;
     }
 
-    if (password.length < 6) {
-      setError('Пароль должен быть не менее 6 символов');
-      return;
+    try {
+      setIsSendingLink(true);
+      const resp = await fetch('/api/auth/request-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        setError(data?.error || 'Не удалось отправить ссылку');
+        return;
+      }
+      setLinkSentTo(email);
+    } catch {
+      setError('Не удалось отправить ссылку');
+    } finally {
+      setIsSendingLink(false);
     }
-
-    const users = getRegisteredUsers();
-    if (users.find(u => u.email === email)) {
-      setError('Пользователь с таким email уже зарегистрирован');
-      return;
-    }
-
-    const newProfile: UserProfile = {
-      name: name.trim(),
-      username: `@${email.split('@')[0]}`,
-      description: '',
-      avatar: undefined
-    };
-
-    const newUser: UserAccount = {
-      email,
-      password,
-      profile: newProfile
-    };
-
-    saveUser(newUser);
-    localStorage.setItem('userProfile', JSON.stringify(newProfile));
-    setProfile(newProfile);
-    setHasProfile(true);
-  };
-
-  // Обработка входа
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!email || !password) {
-      setError('Заполните все поля');
-      return;
-    }
-
-    const users = getRegisteredUsers();
-    const user = users.find(u => u.email === email && u.password === password);
-
-    if (!user) {
-      setError('Неверный email или пароль');
-      return;
-    }
-
-    localStorage.setItem('userProfile', JSON.stringify(user.profile));
-    setProfile(user.profile);
-    setHasProfile(true);
   };
 
   useEffect(() => {
@@ -300,8 +272,7 @@ export const MyCollectionsPage = () => {
     setAuthStep('initial');
     setError('');
     setEmail('');
-    setPassword('');
-    setName('');
+    setLinkSentTo(null);
   };
 
   // Если профиля нет, показываем страницу входа
@@ -339,7 +310,7 @@ export const MyCollectionsPage = () => {
       );
     }
 
-    // Экран с формой авторизации
+    // Экран с формой авторизации (magic link)
     return (
       <div className="my-collections-page">
         <div className="my-collections-page__create-account">
@@ -351,65 +322,18 @@ export const MyCollectionsPage = () => {
               ← Назад
             </button>
             <div className="my-collections-page__auth-form-container">
-              <div className="my-collections-page__auth-tabs">
-                <button
-                  className={`my-collections-page__auth-tab ${authMode === 'login' ? 'my-collections-page__auth-tab--active' : ''}`}
-                  onClick={() => {
-                    setAuthMode('login');
-                    setError('');
-                  }}
-                >
-                  Войти
-                </button>
-                <button
-                  className={`my-collections-page__auth-tab ${authMode === 'register' ? 'my-collections-page__auth-tab--active' : ''}`}
-                  onClick={() => {
-                    setAuthMode('register');
-                    setError('');
-                  }}
-                >
-                  Регистрация
-                </button>
-              </div>
-              
               {error && (
                 <div className="my-collections-page__auth-error">
                   {error}
                 </div>
               )}
 
-              {authMode === 'login' ? (
-                <form onSubmit={handleLogin} className="my-collections-page__auth-form">
-                  <input
-                    type="email"
-                    className="my-collections-page__auth-input"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="password"
-                    className="my-collections-page__auth-input"
-                    placeholder="Пароль"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button type="submit" className="my-collections-page__create-account-register-btn">
-                    Войти
-                  </button>
-                </form>
+              {linkSentTo ? (
+                <div className="my-collections-page__auth-success">
+                  Ссылка для входа отправлена на <strong>{linkSentTo}</strong>
+                </div>
               ) : (
-                <form onSubmit={handleRegister} className="my-collections-page__auth-form">
-                  <input
-                    type="text"
-                    className="my-collections-page__auth-input"
-                    placeholder="Имя"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
+                <form onSubmit={handleSendMagicLink} className="my-collections-page__auth-form">
                   <input
                     type="email"
                     className="my-collections-page__auth-input"
@@ -418,16 +342,12 @@ export const MyCollectionsPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
-                  <input
-                    type="password"
-                    className="my-collections-page__auth-input"
-                    placeholder="Пароль"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button type="submit" className="my-collections-page__create-account-register-btn">
-                    Зарегистрироваться
+                  <button
+                    type="submit"
+                    className="my-collections-page__create-account-register-btn"
+                    disabled={isSendingLink}
+                  >
+                    {isSendingLink ? 'Отправляем...' : 'Отправить ссылку'}
                   </button>
                 </form>
               )}
