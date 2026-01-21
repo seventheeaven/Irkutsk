@@ -47,26 +47,10 @@ export const MyCollectionsPage = () => {
   const [profileName, setProfileName] = useState('');
   const [profileUsername, setProfileUsername] = useState('');
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
-
-  // Загружаем профиль из localStorage
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      try {
-        const profileData: UserProfile = JSON.parse(savedProfile);
-        setProfile(profileData);
-        setHasProfile(true);
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        setHasProfile(false);
-      }
-    } else {
-      setHasProfile(false);
-    }
-  }, []);
 
   // Получаем список зарегистрированных пользователей
   const getRegisteredUsers = (): { email: string; profile: UserProfile }[] => {
@@ -86,13 +70,30 @@ export const MyCollectionsPage = () => {
     localStorage.setItem('registeredUsers', JSON.stringify(users));
   };
 
-  // Если пользователь вернулся по magic-link, подтверждаем токен
+  // Сначала проверяем токен, если он есть в URL
   useEffect(() => {
-    if (hasProfile) return;
-
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
-    if (!token) return;
+    if (!token) {
+      // Если токена нет, загружаем профиль из localStorage
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        try {
+          const profileData: UserProfile = JSON.parse(savedProfile);
+          setProfile(profileData);
+          setHasProfile(true);
+        } catch (error) {
+          console.error('Error loading profile:', error);
+          setHasProfile(false);
+        }
+      } else {
+        setHasProfile(false);
+      }
+      return;
+    }
+
+    // Если есть токен - проверяем его
+    setIsVerifyingToken(true);
 
     (async () => {
       try {
@@ -105,6 +106,7 @@ export const MyCollectionsPage = () => {
         const data = await resp.json();
         if (!resp.ok) {
           setError(data?.error || 'Не удалось войти по ссылке');
+          setIsVerifyingToken(false);
           return;
         }
 
@@ -127,13 +129,15 @@ export const MyCollectionsPage = () => {
           setProfileUsername(`@${usernameBase}`);
         }
 
+        setIsVerifyingToken(false);
         // Чистим URL
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch {
         setError('Не удалось войти по ссылке');
+        setIsVerifyingToken(false);
       }
     })();
-  }, [hasProfile]);
+  }, []);
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -345,6 +349,21 @@ export const MyCollectionsPage = () => {
 
   // Если профиля нет, показываем страницу входа
   if (!hasProfile) {
+    // Показываем загрузку во время проверки токена
+    if (isVerifyingToken) {
+      return (
+        <div className="my-collections-page">
+          <div className="my-collections-page__create-account">
+            <div className="my-collections-page__create-account-gradient">
+              <div className="my-collections-page__auth-form-container">
+                <p style={{ textAlign: 'center', color: '#111', fontSize: '16px' }}>Проверяем ссылку...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Начальный экран с кнопкой "Войти"
     if (authStep === 'initial') {
       return (
