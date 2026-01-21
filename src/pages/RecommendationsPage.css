@@ -46,23 +46,22 @@
 }
 
 .recommendations-page__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  column-count: 2;
+  column-gap: 8px;
   width: 100%;
   padding: 0 8px 92px 8px;
   box-sizing: border-box;
-  align-items: start;
 }
 
 .recommendations-page__card {
+  break-inside: avoid;
+  margin-bottom: 8px;
   background: transparent;
   border-radius: 16px;
   overflow: visible;
   display: flex;
   flex-direction: column;
   position: relative;
-  align-self: start;
 }
 
 .recommendations-page__image-wrapper {

@@ -42,6 +42,12 @@ export const RecommendationsPage = () => {
   // Создаем больше карточек для эффекта Pinterest
   const allPlaces = [...mockPlaces, ...mockPlaces, ...mockPlaces];
 
+  // Генерируем случайные высоты для эффекта Pinterest
+  const getRandomHeight = (index: number) => {
+    const heights = [180, 220, 250, 200, 280, 190, 240, 210, 230, 260];
+    return heights[index % heights.length];
+  };
+
   // Загружаем все публикации всех пользователей из KV
   useEffect(() => {
     const loadPublications = async () => {
@@ -304,13 +310,17 @@ export const RecommendationsPage = () => {
                   >
                     <div className="recommendations-page__image-wrapper">
                       {isImageLoading && (
-                        <div className="recommendations-page__image-placeholder"></div>
+                        <div 
+                          className="recommendations-page__image-placeholder"
+                          style={{ height: `${getRandomHeight(index)}px` }}
+                        ></div>
                       )}
                       {imageUrl ? (
                         <img 
                           src={imageUrl}
                           alt={description}
                           className={`recommendations-page__image ${isImageLoading ? 'recommendations-page__image--loading' : ''}`}
+                          style={{ height: `${getRandomHeight(index)}px` }}
                           loading="lazy"
                           onLoad={() => {
                             setImageLoadingStates(prev => {
@@ -328,7 +338,10 @@ export const RecommendationsPage = () => {
                           }}
                         />
                       ) : (
-                        <div className="recommendations-page__image-placeholder"></div>
+                        <div 
+                          className="recommendations-page__image-placeholder"
+                          style={{ height: `${getRandomHeight(index)}px` }}
+                        ></div>
                       )}
                     </div>
                     <img 
