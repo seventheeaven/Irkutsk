@@ -61,6 +61,7 @@ export const MyCollectionsPage = () => {
   const [isLoginPasswordVisible, setIsLoginPasswordVisible] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isVerifyingToken, setIsVerifyingToken] = useState(false);
+  const [loadingDots, setLoadingDots] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
@@ -611,6 +612,22 @@ export const MyCollectionsPage = () => {
     return hashHex;
   };
 
+  // Анимация точек при загрузке
+  useEffect(() => {
+    if (!isLoggingIn) {
+      setLoadingDots('');
+      return;
+    }
+
+    let dotCount = 0;
+    const interval = setInterval(() => {
+      dotCount = (dotCount + 1) % 4; // 0, 1, 2, 3, потом снова 0
+      setLoadingDots('.'.repeat(dotCount));
+    }, 500); // Меняем каждые 500мс
+
+    return () => clearInterval(interval);
+  }, [isLoggingIn]);
+
   // Обработка входа по email и паролю
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -854,7 +871,7 @@ export const MyCollectionsPage = () => {
                     className="my-collections-page__create-account-register-btn"
                     disabled={isLoggingIn}
                   >
-                    {isLoggingIn ? 'Входим...' : 'Войти'}
+                    {isLoggingIn ? `Вхожу${loadingDots}` : 'Войти'}
                   </button>
                 </form>
               </div>
@@ -884,11 +901,52 @@ export const MyCollectionsPage = () => {
               )}
 
               {linkSentTo ? (
-                <div className="my-collections-page__auth-success">
-                  Ссылка для регистрации отправлена на <strong>{linkSentTo}</strong>
-                  <br />
-                  Перейдите по ссылке из письма, чтобы завершить регистрацию
-                </div>
+                <>
+                  <p className="my-collections-page__auth-success-text">
+                    Ссылка для регистрации отправлена на <strong>{linkSentTo}</strong>
+                    <br />
+                    <br />
+                    После того, как придумаете пароль возвращайтесь,
+                  </p>
+                  <form onSubmit={handleLogin} className="my-collections-page__auth-form">
+                    <input
+                      type="email"
+                      className="my-collections-page__auth-input"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                    <div className="my-collections-page__password-wrapper">
+                      <input
+                        type={isLoginPasswordVisible ? 'text' : 'password'}
+                        className="my-collections-page__auth-input"
+                        placeholder="Пароль"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="my-collections-page__password-toggle"
+                        onClick={() => setIsLoginPasswordVisible(prev => !prev)}
+                      >
+                        <img 
+                          src={isLoginPasswordVisible ? eyeIcon : eyeOffIcon} 
+                          alt={isLoginPasswordVisible ? 'Скрыть пароль' : 'Показать пароль'}
+                          className="my-collections-page__password-toggle-icon"
+                        />
+                      </button>
+                    </div>
+                    <button
+                      type="submit"
+                      className="my-collections-page__create-account-register-btn"
+                      disabled={isLoggingIn}
+                    >
+                      {isLoggingIn ? `Вхожу${loadingDots}` : 'Войти'}
+                    </button>
+                  </form>
+                </>
               ) : (
                 <form onSubmit={handleSendMagicLink} className="my-collections-page__auth-form">
                   <input
