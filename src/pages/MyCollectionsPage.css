@@ -722,7 +722,7 @@
   width: calc(100% - 32px);
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 10px;
   margin-top: 0;
   position: absolute;
   top: calc(200px + 100px + 32px + 50px + 72px); /* 200px (логотип) + высота логотипа (100px) + 32px (отступ текста) + высота текста (50px) + 72px (отступ кнопки) */
