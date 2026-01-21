@@ -874,7 +874,7 @@ export const MyCollectionsPage = () => {
               onClick={handleBackClick}
               aria-label="Назад"
             >
-              <img src={arrowBack} alt="Назад" style={{ width: 24, height: 24 }} />
+              <img src={arrowBackIcon} alt="Назад" style={{ width: 24, height: 24 }} />
             </button>
             <div className="my-collections-page__auth-form-container">
               {error && (
