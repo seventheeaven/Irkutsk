@@ -28,6 +28,7 @@ export default async function handler(req: any, res: any) {
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
+      console.error('RESEND_API_KEY is missing');
       res.status(500).json({ error: 'Missing RESEND_API_KEY env var' });
       return;
     }
@@ -63,8 +64,9 @@ export default async function handler(req: any, res: any) {
 
     res.status(200).json({ ok: true });
   } catch (e: any) {
-    console.error(e);
-    res.status(500).json({ error: 'Failed to send magic link' });
+    console.error('Magic link error:', e);
+    const errorMessage = e?.message || 'Failed to send magic link';
+    res.status(500).json({ error: errorMessage });
   }
 }
 
