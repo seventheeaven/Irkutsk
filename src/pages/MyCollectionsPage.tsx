@@ -59,7 +59,6 @@ export const MyCollectionsPage = () => {
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoginPasswordVisible, setIsLoginPasswordVisible] = useState(false);
-  const [isLoginPasswordVisible, setIsLoginPasswordVisible] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
