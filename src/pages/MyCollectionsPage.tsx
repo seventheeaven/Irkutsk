@@ -51,7 +51,10 @@ export const MyCollectionsPage = () => {
   const [linkSentTo, setLinkSentTo] = useState<string | null>(null);
   const [profileName, setProfileName] = useState('');
   const [profileUsername, setProfileUsername] = useState('');
+  const [profilePassword, setProfilePassword] = useState('');
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
@@ -502,6 +505,8 @@ export const MyCollectionsPage = () => {
     setLinkSentTo(null);
     setProfileName('');
     setProfileUsername('');
+    setProfilePassword('');
+    setLoginPassword('');
     setVerifiedEmail(null);
   };
 
@@ -509,8 +514,13 @@ export const MyCollectionsPage = () => {
     e.preventDefault();
     setError('');
 
-    if (!profileName.trim() || !profileUsername.trim()) {
+    if (!profileName.trim() || !profileUsername.trim() || !profilePassword.trim()) {
       setError('Заполните все поля');
+      return;
+    }
+
+    if (profilePassword.length < 6) {
+      setError('Пароль должен быть не менее 6 символов');
       return;
     }
 
@@ -545,30 +555,94 @@ export const MyCollectionsPage = () => {
     // Нормализуем email
     const normalizedEmail = verifiedEmail.toLowerCase().trim();
     
-    const newProfile: UserProfile = {
+    // Хэшируем пароль на клиенте (простой SHA256, в продакшене лучше использовать bcrypt на сервере)
+    const passwordHash = await sha256(profilePassword);
+    
+    const newProfile: UserProfile & { passwordHash: string } = {
       name: profileName.trim(),
       username: normalizedUsername,
       description: '',
       avatar: undefined,
       email: normalizedEmail,
+      passwordHash: passwordHash,
     };
 
     // Сохраняем пользователя в KV
-    console.log('MyCollectionsPage: Saving profile', { original: verifiedEmail, normalized: normalizedEmail, profile: newProfile });
+    console.log('MyCollectionsPage: Saving profile', { original: verifiedEmail, normalized: normalizedEmail });
     const success = await saveUserProfile(normalizedEmail, newProfile);
     console.log('MyCollectionsPage: Save result', success);
     
     if (success) {
+      // Убираем passwordHash из профиля перед сохранением в localStorage
+      const { passwordHash: _, ...profileWithoutPassword } = newProfile;
+      
       // Сохраняем в localStorage для обратной совместимости
-      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      localStorage.setItem('userProfile', JSON.stringify(profileWithoutPassword));
       
       // Сохраняем в cookies для синхронизации между браузерами (используем нормализованный email)
       document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
       
-      setProfile(newProfile);
+      setProfile(profileWithoutPassword);
       setHasProfile(true);
     } else {
       setError('Не удалось сохранить профиль. Попробуйте еще раз.');
+    }
+  };
+
+  // Функция для хэширования пароля
+  const sha256 = async (message: string): Promise<string> => {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  };
+
+  // Обработка входа по email и паролю
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoggingIn(true);
+
+    if (!email.trim() || !loginPassword.trim()) {
+      setError('Введите email и пароль');
+      setIsLoggingIn(false);
+      return;
+    }
+
+    try {
+      const normalizedEmail = email.toLowerCase().trim();
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail, password: loginPassword }),
+      });
+      
+      const data = await resp.json();
+      console.log('handleLogin: Response', { ok: resp.ok, data });
+      
+      if (!resp.ok) {
+        setError(data?.error || 'Неверный email или пароль');
+        setIsLoggingIn(false);
+        return;
+      }
+
+      // Успешный вход
+      const profile = data.profile;
+      
+      // Сохраняем в localStorage
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+      
+      // Сохраняем в cookies
+      document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      
+      setProfile(profile);
+      setHasProfile(true);
+    } catch (error) {
+      console.error('handleLogin: Error', error);
+      setError('Не удалось войти. Попробуйте еще раз.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -648,7 +722,7 @@ export const MyCollectionsPage = () => {
               </button>
               <div className="my-collections-page__auth-form-container">
                 <h2 className="my-collections-page__profile-setup-title">Настройка профиля</h2>
-                <p className="my-collections-page__profile-setup-subtitle">Введите ваше имя и username</p>
+                <p className="my-collections-page__profile-setup-subtitle">Введите ваше имя, username и пароль</p>
                 
                 {error && (
                   <div className="my-collections-page__auth-error">
@@ -673,6 +747,15 @@ export const MyCollectionsPage = () => {
                     onChange={(e) => setProfileUsername(e.target.value)}
                     required
                   />
+                  <input
+                    type="password"
+                    className="my-collections-page__auth-input"
+                    placeholder="Пароль (минимум 6 символов)"
+                    value={profilePassword}
+                    onChange={(e) => setProfilePassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
                   <button
                     type="submit"
                     className="my-collections-page__create-account-register-btn"
@@ -687,7 +770,60 @@ export const MyCollectionsPage = () => {
       );
     }
 
-    // Экран с формой авторизации (magic link)
+    // Экран с формой авторизации
+    if (authMode === 'login') {
+      // Форма входа с email и паролем
+      return (
+        <div className="my-collections-page">
+          <div className="my-collections-page__create-account">
+            <div className="my-collections-page__create-account-gradient">
+              <button 
+                className="my-collections-page__auth-back-btn"
+                onClick={handleBackClick}
+              >
+                ← Назад
+              </button>
+              <div className="my-collections-page__auth-form-container">
+                {error && (
+                  <div className="my-collections-page__auth-error">
+                    {error}
+                  </div>
+                )}
+
+                <form onSubmit={handleLogin} className="my-collections-page__auth-form">
+                  <input
+                    type="email"
+                    className="my-collections-page__auth-input"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                  <input
+                    type="password"
+                    className="my-collections-page__auth-input"
+                    placeholder="Пароль"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="my-collections-page__create-account-register-btn"
+                    disabled={isLoggingIn}
+                  >
+                    {isLoggingIn ? 'Входим...' : 'Войти'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Форма регистрации (magic link)
     return (
       <div className="my-collections-page">
         <div className="my-collections-page__create-account">
@@ -707,7 +843,9 @@ export const MyCollectionsPage = () => {
 
               {linkSentTo ? (
                 <div className="my-collections-page__auth-success">
-                  Ссылка для входа отправлена на <strong>{linkSentTo}</strong>
+                  Ссылка для регистрации отправлена на <strong>{linkSentTo}</strong>
+                  <br />
+                  Перейдите по ссылке из письма, чтобы завершить регистрацию
                 </div>
               ) : (
                 <form onSubmit={handleSendMagicLink} className="my-collections-page__auth-form">

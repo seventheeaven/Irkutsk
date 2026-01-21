@@ -24,7 +24,9 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      res.status(200).json({ ok: true, profile });
+      // Убираем passwordHash из ответа при GET запросе
+      const { passwordHash: _, ...profileWithoutPassword } = profile;
+      res.status(200).json({ ok: true, profile: profileWithoutPassword });
     } catch (e) {
       console.error('Get profile error:', e);
       res.status(500).json({ error: 'Failed to get profile' });

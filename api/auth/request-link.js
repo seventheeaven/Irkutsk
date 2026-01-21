@@ -36,24 +36,8 @@ module.exports = async function handler(req, res) {
     // Нормализуем email (нижний регистр, без пробелов)
     const normalizedEmail = email.toLowerCase().trim();
     
-    const isLogin = mode === 'login';
-    
-    // Если это вход, проверяем существует ли пользователь
-    if (isLogin) {
-      try {
-        console.log('request-link: Checking user existence for login', { email: normalizedEmail });
-        const existingProfile = await kv.get(`user:${normalizedEmail}`);
-        console.log('request-link: User check result', { exists: !!existingProfile });
-        if (!existingProfile) {
-          res.status(400).json({ error: 'Пользователь с таким email не зарегистрирован' });
-          return;
-        }
-      } catch (e) {
-        console.error('Error checking user existence:', e);
-        res.status(500).json({ error: 'Ошибка при проверке пользователя' });
-        return;
-      }
-    }
+    // Для регистрации не проверяем существование пользователя
+    // Magic link используется только для регистрации
 
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = sha256(token);
