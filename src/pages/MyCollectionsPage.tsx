@@ -47,6 +47,7 @@ export const MyCollectionsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [publicationTitle, setPublicationTitle] = useState('');
+  const [publicationDescription, setPublicationDescription] = useState('');
   const [authStep, setAuthStep] = useState<'initial' | 'email' | 'profileSetup'>('initial');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
