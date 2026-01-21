@@ -92,6 +92,13 @@ export const RecommendationsPage = () => {
         // Используем меньшее количество для более быстрой загрузки
         const irkutskImages = await getIrkutskImages(Math.min(allPlaces.length, 20));
         setImages(irkutskImages);
+        // Инициализируем состояние загрузки для всех изображений
+        const initialLoadingStates = new Map<string, boolean>();
+        irkutskImages.forEach((img, idx) => {
+          const key = `place-${idx}-${img.urls.small}`;
+          initialLoadingStates.set(key, true);
+        });
+        setImageLoadingStates(initialLoadingStates);
       } catch (error) {
         console.error('Error loading images:', error);
       } finally {
