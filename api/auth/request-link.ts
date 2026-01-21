@@ -44,7 +44,7 @@ export default async function handler(req: any, res: any) {
     const resend = new Resend(apiKey);
 
     await resend.emails.send({
-      from: 'SYUDA <no-reply@syuda.app>',
+      from: 'SYUDA <onboarding@resend.dev>',
       to: [email],
       subject: 'Вход в SYUDA',
       html: `
