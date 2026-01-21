@@ -57,33 +57,82 @@ export const MyCollectionsPage = () => {
   const isInitialLoadRef = useRef(true);
   const tokenVerifiedRef = useRef(false);
 
-  // Получаем список зарегистрированных пользователей
-  const getRegisteredUsers = (): { email: string; profile: UserProfile }[] => {
-    const users = localStorage.getItem('registeredUsers');
-    return users ? JSON.parse(users) : [];
-  };
-
-  // Сохраняем пользователя
-  const saveUser = (userEmail: string, userProfile: UserProfile) => {
-    const users = getRegisteredUsers();
-    const existingUserIndex = users.findIndex(u => u.email === userEmail);
-    if (existingUserIndex >= 0) {
-      users[existingUserIndex] = { email: userEmail, profile: userProfile };
-    } else {
-      users.push({ email: userEmail, profile: userProfile });
+  // Загружаем профиль пользователя из KV
+  const loadUserProfile = async (userEmail: string): Promise<UserProfile | null> => {
+    try {
+      const resp = await fetch(`/api/users/profile?email=${encodeURIComponent(userEmail)}`);
+      const data = await resp.json();
+      if (resp.ok && data.profile) {
+        return data.profile;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      return null;
     }
-    localStorage.setItem('registeredUsers', JSON.stringify(users));
   };
 
-  // Получаем все публикации из localStorage
-  const getAllPublications = (): Collection[] => {
-    const publications = localStorage.getItem('allPublications');
-    return publications ? JSON.parse(publications) : [];
+  // Сохраняем профиль пользователя в KV
+  const saveUserProfile = async (userEmail: string, userProfile: UserProfile): Promise<boolean> => {
+    try {
+      const resp = await fetch('/api/users/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail, profile: userProfile }),
+      });
+      const data = await resp.json();
+      return resp.ok && data.ok;
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      return false;
+    }
   };
 
-  // Сохраняем все публикации в localStorage
-  const saveAllPublications = (publications: Collection[]) => {
-    localStorage.setItem('allPublications', JSON.stringify(publications));
+  // Загружаем все публикации из KV
+  const loadAllPublications = async (): Promise<Collection[]> => {
+    try {
+      const resp = await fetch('/api/publications/list');
+      const data = await resp.json();
+      if (resp.ok && data.publications) {
+        return data.publications;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error loading publications:', error);
+      return [];
+    }
+  };
+
+  // Создаем публикацию в KV
+  const createPublication = async (publication: Collection): Promise<boolean> => {
+    try {
+      const resp = await fetch('/api/publications/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(publication),
+      });
+      const data = await resp.json();
+      return resp.ok && data.ok;
+    } catch (error) {
+      console.error('Error creating publication:', error);
+      return false;
+    }
+  };
+
+  // Удаляем публикацию из KV
+  const deletePublication = async (publicationId: string): Promise<boolean> => {
+    try {
+      const resp = await fetch('/api/publications/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicationId }),
+      });
+      const data = await resp.json();
+      return resp.ok && data.ok;
+    } catch (error) {
+      console.error('Error deleting publication:', error);
+      return false;
+    }
   };
 
   // Сначала проверяем токен, если он есть в URL
@@ -94,14 +143,32 @@ export const MyCollectionsPage = () => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     
-    // Если токена нет, загружаем профиль из localStorage
+    // Если токена нет, проверяем есть ли email в localStorage (для обратной совместимости)
+    // и загружаем профиль из KV
     if (!token) {
       const savedProfile = localStorage.getItem('userProfile');
       if (savedProfile) {
         try {
           const profileData: UserProfile = JSON.parse(savedProfile);
-          setProfile(profileData);
-          setHasProfile(true);
+          // Если есть email, загружаем профиль из KV
+          if (profileData.email) {
+            (async () => {
+              const kvProfile = await loadUserProfile(profileData.email!);
+              if (kvProfile) {
+                setProfile(kvProfile);
+                setHasProfile(true);
+                // Обновляем localStorage для обратной совместимости
+                localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+              } else {
+                // Если профиля нет в KV, но есть в localStorage, используем его
+                setProfile(profileData);
+                setHasProfile(true);
+              }
+            })();
+          } else {
+            setProfile(profileData);
+            setHasProfile(true);
+          }
         } catch (error) {
           console.error('Error loading profile:', error);
           setHasProfile(false);
@@ -136,17 +203,16 @@ export const MyCollectionsPage = () => {
         const userEmail = data.email;
         setVerifiedEmail(userEmail);
 
-        // Проверяем, есть ли уже профиль для этого email
-        const users = getRegisteredUsers();
-        const existingUser = users.find(u => u.email === userEmail);
-
         // Чистим URL сразу после успешной проверки
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        if (existingUser) {
+        // Проверяем, есть ли уже профиль для этого email в KV
+        const existingProfile = await loadUserProfile(userEmail);
+
+        if (existingProfile) {
           // Пользователь уже зарегистрирован - логиним сразу
-          localStorage.setItem('userProfile', JSON.stringify(existingUser.profile));
-          setProfile(existingUser.profile);
+          localStorage.setItem('userProfile', JSON.stringify(existingProfile));
+          setProfile(existingProfile);
           setHasProfile(true);
         } else {
           // Новый пользователь - показываем форму настройки профиля
@@ -165,13 +231,15 @@ export const MyCollectionsPage = () => {
 
   // Загружаем публикации текущего пользователя
   useEffect(() => {
-    if (!hasProfile || !profile) return;
+    if (!hasProfile || !profile || !profile.email) return;
 
-    const allPublications = getAllPublications();
-    const userPublications = allPublications.filter(
-      pub => pub.userId === profile.email || pub.authorName === profile.name
-    );
-    setCollections(userPublications);
+    (async () => {
+      const allPublications = await loadAllPublications();
+      const userPublications = allPublications.filter(
+        pub => pub.userId === profile.email || pub.authorName === profile.name
+      );
+      setCollections(userPublications);
+    })();
   }, [hasProfile, profile]);
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
@@ -328,7 +396,7 @@ export const MyCollectionsPage = () => {
     }
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (publicationTitle.trim() && selectedImage && profile) {
       const newCollection: Collection = {
         id: Date.now().toString(),
@@ -341,25 +409,29 @@ export const MyCollectionsPage = () => {
         createdAt: Date.now()
       };
       
-      // Сохраняем в общий список всех публикаций
-      const allPublications = getAllPublications();
-      allPublications.push(newCollection);
-      saveAllPublications(allPublications);
+      // Сохраняем в KV
+      const success = await createPublication(newCollection);
       
-      // Обновляем локальное состояние
-      setCollections([...collections, newCollection]);
-      handleCloseModal();
+      if (success) {
+        // Обновляем локальное состояние
+        setCollections([...collections, newCollection]);
+        handleCloseModal();
+      } else {
+        setError('Не удалось опубликовать');
+      }
     }
   };
 
-  const handleDeletePublication = (publicationId: string) => {
-    // Удаляем из общего списка
-    const allPublications = getAllPublications();
-    const filtered = allPublications.filter(pub => pub.id !== publicationId);
-    saveAllPublications(filtered);
+  const handleDeletePublication = async (publicationId: string) => {
+    // Удаляем из KV
+    const success = await deletePublication(publicationId);
     
-    // Обновляем локальное состояние
-    setCollections(collections.filter(c => c.id !== publicationId));
+    if (success) {
+      // Обновляем локальное состояние
+      setCollections(collections.filter(c => c.id !== publicationId));
+    } else {
+      setError('Не удалось удалить публикацию');
+    }
   };
 
 
@@ -374,7 +446,7 @@ export const MyCollectionsPage = () => {
     setVerifiedEmail(null);
   };
 
-  const handleProfileSetup = (e: React.FormEvent) => {
+  const handleProfileSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -388,19 +460,48 @@ export const MyCollectionsPage = () => {
       return;
     }
 
+    const normalizedUsername = profileUsername.trim().startsWith('@') 
+      ? profileUsername.trim() 
+      : `@${profileUsername.trim()}`;
+
+    // Проверяем уникальность username
+    try {
+      const checkResp = await fetch('/api/users/check-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: normalizedUsername, currentEmail: verifiedEmail }),
+      });
+      const checkData = await checkResp.json();
+      
+      if (!checkData.available) {
+        setError('Этот username уже занят. Пожалуйста, выберите другой.');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking username:', error);
+      setError('Не удалось проверить username');
+      return;
+    }
+
     const newProfile: UserProfile = {
       name: profileName.trim(),
-      username: profileUsername.trim().startsWith('@') ? profileUsername.trim() : `@${profileUsername.trim()}`,
+      username: normalizedUsername,
       description: '',
       avatar: undefined,
       email: verifiedEmail,
     };
 
-    // Сохраняем пользователя
-    saveUser(verifiedEmail, newProfile);
-    localStorage.setItem('userProfile', JSON.stringify(newProfile));
-    setProfile(newProfile);
-    setHasProfile(true);
+    // Сохраняем пользователя в KV
+    const success = await saveUserProfile(verifiedEmail, newProfile);
+    
+    if (success) {
+      // Также сохраняем в localStorage для обратной совместимости
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      setProfile(newProfile);
+      setHasProfile(true);
+    } else {
+      setError('Не удалось сохранить профиль');
+    }
   };
 
   // Если профиля нет, показываем страницу входа

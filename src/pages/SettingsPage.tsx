@@ -20,27 +20,48 @@ export const SettingsPage = () => {
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Загружаем профиль из localStorage
+  // Загружаем профиль из KV
   useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      try {
-        const profileData: UserProfile = JSON.parse(savedProfile);
-        setName(profileData.name || '');
-        setUsername(profileData.username || '');
-        setDescription(profileData.description || '');
-        setAvatar(profileData.avatar || null);
-      } catch (error) {
-        console.error('Error loading profile:', error);
+    const loadProfile = async () => {
+      // Сначала проверяем localStorage для обратной совместимости
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        try {
+          const profileData: UserProfile = JSON.parse(savedProfile);
+          
+          // Если есть email, загружаем из KV
+          if (profileData.email) {
+            try {
+              const resp = await fetch(`/api/users/profile?email=${encodeURIComponent(profileData.email)}`);
+              const data = await resp.json();
+              if (resp.ok && data.profile) {
+                const kvProfile = data.profile;
+                setName(kvProfile.name || '');
+                setUsername(kvProfile.username || '');
+                setDescription(kvProfile.description || '');
+                setAvatar(kvProfile.avatar || null);
+                // Обновляем localStorage
+                localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+                return;
+              }
+            } catch (error) {
+              console.error('Error loading profile from KV:', error);
+            }
+          }
+          
+          // Если не удалось загрузить из KV, используем localStorage
+          setName(profileData.name || '');
+          setUsername(profileData.username || '');
+          setDescription(profileData.description || '');
+          setAvatar(profileData.avatar || null);
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
       }
-    }
+    };
+    
+    loadProfile();
   }, []);
-
-  // Получаем список всех пользователей для проверки уникальности username
-  const getAllUsers = (): { email: string; profile: UserProfile }[] => {
-    const users = localStorage.getItem('registeredUsers');
-    return users ? JSON.parse(users) : [];
-  };
 
   // Получаем текущий профиль
   const getCurrentProfile = (): UserProfile | null => {
@@ -70,7 +91,7 @@ export const SettingsPage = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError('');
 
     if (!name.trim()) {
@@ -88,16 +109,29 @@ export const SettingsPage = () => {
       ? username.trim() 
       : `@${username.trim()}`;
 
-    // Проверяем уникальность username
     const currentProfile = getCurrentProfile();
-    const allUsers = getAllUsers();
-    const existingUser = allUsers.find(
-      u => u.profile.username === normalizedUsername && 
-      u.profile.username !== currentProfile?.username
-    );
+    
+    if (!currentProfile || !currentProfile.email) {
+      setError('Ошибка: профиль не найден.');
+      return;
+    }
 
-    if (existingUser) {
-      setError('Этот username уже занят');
+    // Проверяем уникальность username через API
+    try {
+      const checkResp = await fetch('/api/users/check-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: normalizedUsername, currentEmail: currentProfile.email }),
+      });
+      const checkData = await checkResp.json();
+      
+      if (!checkData.available) {
+        setError('Этот username уже занят. Пожалуйста, выберите другой.');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking username:', error);
+      setError('Не удалось проверить username');
       return;
     }
 
@@ -107,23 +141,31 @@ export const SettingsPage = () => {
       username: normalizedUsername,
       description: description.trim(),
       avatar: avatar || undefined,
-      email: currentProfile?.email,
+      email: currentProfile.email,
     };
 
-    // Сохраняем в localStorage
-    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-
-    // Обновляем в списке пользователей
-    if (currentProfile?.email) {
-      const users = getAllUsers();
-      const userIndex = users.findIndex(u => u.email === currentProfile.email);
-      if (userIndex >= 0) {
-        users[userIndex].profile = updatedProfile;
-        localStorage.setItem('registeredUsers', JSON.stringify(users));
+    // Сохраняем в KV
+    try {
+      const resp = await fetch('/api/users/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentProfile.email, profile: updatedProfile }),
+      });
+      const data = await resp.json();
+      
+      if (!resp.ok || !data.ok) {
+        setError('Не удалось сохранить профиль');
+        return;
       }
+      
+      // Также обновляем localStorage для обратной совместимости
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      
+      navigate(-1);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      setError('Не удалось сохранить профиль');
     }
-
-    navigate(-1);
   };
 
   const handleLogout = () => {

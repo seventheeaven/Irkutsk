@@ -40,19 +40,33 @@ export const RecommendationsPage = () => {
   // Создаем больше карточек для эффекта Pinterest
   const allPlaces = [...mockPlaces, ...mockPlaces, ...mockPlaces];
 
-  // Загружаем все публикации всех пользователей
+  // Загружаем все публикации всех пользователей из KV
   useEffect(() => {
-    const allPublications = localStorage.getItem('allPublications');
-    if (allPublications) {
+    const loadPublications = async () => {
       try {
-        const pubs: Publication[] = JSON.parse(allPublications);
-        // Сортируем по дате создания (новые сначала)
-        pubs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        setPublications(pubs);
+        const resp = await fetch('/api/publications/list');
+        const data = await resp.json();
+        if (resp.ok && data.publications) {
+          // Публикации уже отсортированы на сервере
+          setPublications(data.publications);
+        }
       } catch (error) {
         console.error('Error loading publications:', error);
+        // Fallback на localStorage для обратной совместимости
+        const allPublications = localStorage.getItem('allPublications');
+        if (allPublications) {
+          try {
+            const pubs: Publication[] = JSON.parse(allPublications);
+            pubs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            setPublications(pubs);
+          } catch (e) {
+            console.error('Error loading from localStorage:', e);
+          }
+        }
       }
-    }
+    };
+    
+    loadPublications();
   }, []);
 
   // Загружаем лайки из localStorage
