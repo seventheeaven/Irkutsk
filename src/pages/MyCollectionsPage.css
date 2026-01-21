@@ -654,10 +654,11 @@
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   width: 100%;
-  height: 600px;
+  min-height: 100vh;
   background: linear-gradient(to bottom, #ffffff 0%, #FFE9BD 100%);
-  border-radius: 0 0 56px 56px;
+  border-radius: 0 0 40px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -858,7 +859,7 @@
   width: 100%;
   height: 60px;
   background: #FFFFFF;
-  border: 1px solid #B9B9B9;
+  border: none;
   border-radius: 32px;
   font-size: 20px;
   font-weight: 600;
@@ -879,13 +880,11 @@
   left: 16px;
   background: transparent;
   border: none;
-  font-size: 16px;
-  font-weight: 500;
-  color: #111111;
   cursor: pointer;
   padding: 8px 0;
   text-align: left;
-  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  display: flex;
+  align-items: center;
   transition: opacity 0.2s ease;
   z-index: 10;
 }
@@ -904,6 +903,39 @@
   z-index: 10;
   box-sizing: border-box;
   padding-bottom: 40px;
+}
+
+.my-collections-page__password-wrapper {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-collections-page__password-toggle {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.my-collections-page__password-toggle-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.my-collections-page__password-toggle:active {
+  opacity: 0.7;
 }
 
 .my-collections-page__auth-tabs {
@@ -979,7 +1011,7 @@
 
 .my-collections-page__auth-input:focus {
   outline: none;
-  border-color: #BABABA;
+  border-color: #D9D9D9;
 }
 
 .my-collections-page__auth-input::placeholder {

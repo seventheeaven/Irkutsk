@@ -4,6 +4,9 @@ import plusIcon from '../../img/plus.svg';
 import collectionsImage from '../../img/collections.jpg';
 import logoSuda from '../../img/logo_suda.svg';
 import signInImage from '../../img/sign_in.png';
+import arrowBackIcon from '../../img/arrow_back.svg';
+import eyeIcon from '../../img/eye.svg';
+import eyeOffIcon from '../../img/eye-off.svg';
 import './MyCollectionsPage.css';
 
 interface Collection {
@@ -52,8 +55,11 @@ export const MyCollectionsPage = () => {
   const [profileName, setProfileName] = useState('');
   const [profileUsername, setProfileUsername] = useState('');
   const [profilePassword, setProfilePassword] = useState('');
+  const [isProfilePasswordVisible, setIsProfilePasswordVisible] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [loginPassword, setLoginPassword] = useState('');
+  const [isLoginPasswordVisible, setIsLoginPasswordVisible] = useState(false);
+  const [isLoginPasswordVisible, setIsLoginPasswordVisible] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -725,8 +731,9 @@ export const MyCollectionsPage = () => {
               <button 
                 className="my-collections-page__auth-back-btn"
                 onClick={handleBackClick}
+                aria-label="Назад"
               >
-                ← Назад
+                <img src={arrowBackIcon} alt="Назад" style={{ width: 24, height: 24 }} />
               </button>
               <div className="my-collections-page__auth-form-container">
                 <h2 className="my-collections-page__profile-setup-title">Настройка профиля</h2>
@@ -755,15 +762,28 @@ export const MyCollectionsPage = () => {
                     onChange={(e) => setProfileUsername(e.target.value)}
                     required
                   />
-                  <input
-                    type="password"
-                    className="my-collections-page__auth-input"
-                    placeholder="Пароль (минимум 6 символов)"
-                    value={profilePassword}
-                    onChange={(e) => setProfilePassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
+                  <div className="my-collections-page__password-wrapper">
+                    <input
+                      type={isProfilePasswordVisible ? 'text' : 'password'}
+                      className="my-collections-page__auth-input"
+                      placeholder="Пароль (минимум 6 символов)"
+                      value={profilePassword}
+                      onChange={(e) => setProfilePassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      className="my-collections-page__password-toggle"
+                      onClick={() => setIsProfilePasswordVisible(prev => !prev)}
+                    >
+                      <img 
+                        src={isProfilePasswordVisible ? eyeIcon : eyeOffIcon} 
+                        alt={isProfilePasswordVisible ? 'Скрыть пароль' : 'Показать пароль'}
+                        className="my-collections-page__password-toggle-icon"
+                      />
+                    </button>
+                  </div>
                   <button
                     type="submit"
                     className="my-collections-page__create-account-register-btn"
@@ -788,8 +808,9 @@ export const MyCollectionsPage = () => {
               <button 
                 className="my-collections-page__auth-back-btn"
                 onClick={handleBackClick}
+                aria-label="Назад"
               >
-                ← Назад
+                <img src={arrowBackIcon} alt="Назад" style={{ width: 24, height: 24 }} />
               </button>
               <div className="my-collections-page__auth-form-container">
                 {error && (
@@ -808,14 +829,27 @@ export const MyCollectionsPage = () => {
                     required
                     autoFocus
                   />
-                  <input
-                    type="password"
-                    className="my-collections-page__auth-input"
-                    placeholder="Пароль"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
+                  <div className="my-collections-page__password-wrapper">
+                    <input
+                      type={isLoginPasswordVisible ? 'text' : 'password'}
+                      className="my-collections-page__auth-input"
+                      placeholder="Пароль"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="my-collections-page__password-toggle"
+                      onClick={() => setIsLoginPasswordVisible(prev => !prev)}
+                    >
+                      <img 
+                        src={isLoginPasswordVisible ? eyeIcon : eyeOffIcon} 
+                        alt={isLoginPasswordVisible ? 'Скрыть пароль' : 'Показать пароль'}
+                        className="my-collections-page__password-toggle-icon"
+                      />
+                    </button>
+                  </div>
                   <button
                     type="submit"
                     className="my-collections-page__create-account-register-btn"
@@ -839,8 +873,9 @@ export const MyCollectionsPage = () => {
             <button 
               className="my-collections-page__auth-back-btn"
               onClick={handleBackClick}
+              aria-label="Назад"
             >
-              ← Назад
+              <img src={arrowBack} alt="Назад" style={{ width: 24, height: 24 }} />
             </button>
             <div className="my-collections-page__auth-form-container">
               {error && (

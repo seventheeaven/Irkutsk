@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
+import arrowBack from '../../img/arrow_back.svg';
 import './SettingsPage.css';
 
 interface UserProfile {
@@ -177,8 +178,8 @@ export const SettingsPage = () => {
     <div className="settings-page">
       <div className="settings-page__header-wrapper">
         <Header />
-        <button className="settings-page__back" onClick={handleBack}>
-          ← Назад
+        <button className="settings-page__back" onClick={handleBack} aria-label="Назад">
+          <img src={arrowBack} alt="Назад" style={{ width: 24, height: 24 }} />
         </button>
       </div>
       <div className="settings-page__content">
