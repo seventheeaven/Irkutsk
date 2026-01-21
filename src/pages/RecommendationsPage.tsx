@@ -258,7 +258,7 @@ export const RecommendationsPage = () => {
                   
                   if (isPublication) {
                     const pub = publications[index];
-                    imageUrl = pub.imageUrls[0] || '';
+                    imageUrl = pub.imageUrls?.[0] || '';
                     description = pub.description || pub.name;
                     title = pub.name;
                     itemId = `pub-${pub.id}`;
@@ -266,11 +266,13 @@ export const RecommendationsPage = () => {
                     // Это место из allPlaces
                     const placeIndex = index - publications.length;
                     const place = allPlaces[placeIndex];
-                    const image = images[placeIndex] || images[placeIndex % images.length];
-                    imageUrl = image?.urls?.regular || image?.urls?.small || '';
-                    description = place.description;
-                    title = place.name;
-                    itemId = `${place.id}-${placeIndex}`;
+                    if (place) {
+                      const image = images[placeIndex] || images[placeIndex % images.length];
+                      imageUrl = image?.urls?.regular || image?.urls?.small || '';
+                      description = place.description;
+                      title = place.name;
+                      itemId = `${place.id}-${placeIndex}`;
+                    }
                   }
                 }
                 
