@@ -238,9 +238,6 @@ export const RecommendationsPage = () => {
           ) : (
             <div className="recommendations-page__grid">
               {displayItems.map((item, index) => {
-                // Определяем, является ли элемент публикацией
-                const isPublication = !showRecommendations && 'isPublication' in item && (item as any).isPublication;
-                
                 let imageUrl = '';
                 let description = '';
                 let title = '';
@@ -255,19 +252,26 @@ export const RecommendationsPage = () => {
                   title = rec.name;
                   itemId = `rec-${index}`;
                   address = rec.address;
-                } else if (isPublication) {
-                  const pub = item as any;
-                  imageUrl = pub.image || '';
-                  description = pub.description || pub.name;
-                  title = pub.name;
-                  itemId = `pub-${pub.id}`;
                 } else {
-                  const place = item as typeof mockPlaces[0];
-                  const image = images[index] || images[index % images.length];
-                  imageUrl = image?.urls?.regular || image?.urls?.small || '';
-                  description = place.description;
-                  title = place.name;
-                  itemId = `${place.id}-${index}`;
+                  // Проверяем, является ли элемент публикацией (первые элементы - публикации)
+                  const isPublication = index < publications.length;
+                  
+                  if (isPublication) {
+                    const pub = publications[index];
+                    imageUrl = pub.imageUrls[0] || '';
+                    description = pub.description || pub.name;
+                    title = pub.name;
+                    itemId = `pub-${pub.id}`;
+                  } else {
+                    // Это место из allPlaces
+                    const placeIndex = index - publications.length;
+                    const place = allPlaces[placeIndex];
+                    const image = images[placeIndex] || images[placeIndex % images.length];
+                    imageUrl = image?.urls?.regular || image?.urls?.small || '';
+                    description = place.description;
+                    title = place.name;
+                    itemId = `${place.id}-${placeIndex}`;
+                  }
                 }
                 
                 const isLiked = likedItems.has(itemId);
