@@ -1,11 +1,11 @@
 const { kv } = require('@vercel/kv');
 const crypto = require('crypto');
 
-function sha256(input) {
+function sha256(input: string) {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -21,9 +21,9 @@ module.exports = async function handler(req, res) {
 
     const tokenHash = sha256(token);
     const key = `magiclink:${tokenHash}`;
-    const record = await kv.get(key);
+    const record = (await kv.get(key)) as any;
 
-    if (!record || !record.email) {
+    if (!record?.email) {
       res.status(401).json({ error: 'Token expired or invalid' });
       return;
     }
@@ -32,11 +32,22 @@ module.exports = async function handler(req, res) {
     await kv.del(key);
 
     const email = String(record.email);
+    const usernameBase = email.split('@')[0] || 'user';
 
-    // Return only email - frontend will check if user exists and show profile setup if needed
-    res.status(200).json({ ok: true, email });
-  } catch (e) {
-    console.error('Verify token error:', e);
+    // Minimal profile (frontend stores it in localStorage)
+    const profile = {
+      name: usernameBase,
+      username: `@${usernameBase}`,
+      description: '',
+      avatar: undefined,
+      email,
+    };
+
+    res.status(200).json({ ok: true, profile });
+  } catch (e: any) {
+    console.error(e);
     res.status(500).json({ error: 'Failed to verify token' });
   }
-};
+}
+
+

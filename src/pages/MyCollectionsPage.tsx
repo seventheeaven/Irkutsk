@@ -39,11 +39,14 @@ export const MyCollectionsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [publicationTitle, setPublicationTitle] = useState('');
-  const [authStep, setAuthStep] = useState<'initial' | 'email'>('initial');
+  const [authStep, setAuthStep] = useState<'initial' | 'email' | 'profileSetup'>('initial');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSendingLink, setIsSendingLink] = useState(false);
   const [linkSentTo, setLinkSentTo] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('');
+  const [profileUsername, setProfileUsername] = useState('');
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollYRef = useRef(0);
   const isInitialLoadRef = useRef(true);
@@ -64,6 +67,24 @@ export const MyCollectionsPage = () => {
       setHasProfile(false);
     }
   }, []);
+
+  // Получаем список зарегистрированных пользователей
+  const getRegisteredUsers = (): { email: string; profile: UserProfile }[] => {
+    const users = localStorage.getItem('registeredUsers');
+    return users ? JSON.parse(users) : [];
+  };
+
+  // Сохраняем пользователя
+  const saveUser = (userEmail: string, userProfile: UserProfile) => {
+    const users = getRegisteredUsers();
+    const existingUserIndex = users.findIndex(u => u.email === userEmail);
+    if (existingUserIndex >= 0) {
+      users[existingUserIndex] = { email: userEmail, profile: userProfile };
+    } else {
+      users.push({ email: userEmail, profile: userProfile });
+    }
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+  };
 
   // Если пользователь вернулся по magic-link, подтверждаем токен
   useEffect(() => {
@@ -87,9 +108,24 @@ export const MyCollectionsPage = () => {
           return;
         }
 
-        localStorage.setItem('userProfile', JSON.stringify(data.profile));
-        setProfile(data.profile);
-        setHasProfile(true);
+        const userEmail = data.email;
+        setVerifiedEmail(userEmail);
+
+        // Проверяем, есть ли уже профиль для этого email
+        const users = getRegisteredUsers();
+        const existingUser = users.find(u => u.email === userEmail);
+
+        if (existingUser) {
+          // Пользователь уже зарегистрирован - логиним сразу
+          localStorage.setItem('userProfile', JSON.stringify(existingUser.profile));
+          setProfile(existingUser.profile);
+          setHasProfile(true);
+        } else {
+          // Новый пользователь - показываем форму настройки профиля
+          setAuthStep('profileSetup');
+          const usernameBase = userEmail.split('@')[0] || 'user';
+          setProfileUsername(`@${usernameBase}`);
+        }
 
         // Чистим URL
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -273,6 +309,38 @@ export const MyCollectionsPage = () => {
     setError('');
     setEmail('');
     setLinkSentTo(null);
+    setProfileName('');
+    setProfileUsername('');
+    setVerifiedEmail(null);
+  };
+
+  const handleProfileSetup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!profileName.trim() || !profileUsername.trim()) {
+      setError('Заполните все поля');
+      return;
+    }
+
+    if (!verifiedEmail) {
+      setError('Ошибка: email не найден');
+      return;
+    }
+
+    const newProfile: UserProfile = {
+      name: profileName.trim(),
+      username: profileUsername.trim().startsWith('@') ? profileUsername.trim() : `@${profileUsername.trim()}`,
+      description: '',
+      avatar: undefined,
+      email: verifiedEmail,
+    };
+
+    // Сохраняем пользователя
+    saveUser(verifiedEmail, newProfile);
+    localStorage.setItem('userProfile', JSON.stringify(newProfile));
+    setProfile(newProfile);
+    setHasProfile(true);
   };
 
   // Если профиля нет, показываем страницу входа
@@ -303,6 +371,59 @@ export const MyCollectionsPage = () => {
                 >
                   Войти
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Экран настройки профиля для новых пользователей
+    if (authStep === 'profileSetup') {
+      return (
+        <div className="my-collections-page">
+          <div className="my-collections-page__create-account">
+            <div className="my-collections-page__create-account-gradient">
+              <button 
+                className="my-collections-page__auth-back-btn"
+                onClick={handleBackClick}
+              >
+                ← Назад
+              </button>
+              <div className="my-collections-page__auth-form-container">
+                <h2 className="my-collections-page__profile-setup-title">Настройка профиля</h2>
+                <p className="my-collections-page__profile-setup-subtitle">Введите ваше имя и username</p>
+                
+                {error && (
+                  <div className="my-collections-page__auth-error">
+                    {error}
+                  </div>
+                )}
+
+                <form onSubmit={handleProfileSetup} className="my-collections-page__auth-form">
+                  <input
+                    type="text"
+                    className="my-collections-page__auth-input"
+                    placeholder="Имя"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="text"
+                    className="my-collections-page__auth-input"
+                    placeholder="Username (например: @username)"
+                    value={profileUsername}
+                    onChange={(e) => setProfileUsername(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="my-collections-page__create-account-register-btn"
+                  >
+                    Сохранить
+                  </button>
+                </form>
               </div>
             </div>
           </div>
