@@ -11,33 +11,12 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
         }
       ]
     },
     {
-      "source": "/(.*\\.(js|mjs))",
+      "source": "/(.*\\.(js|mjs|css|woff|woff2|ttf|eot|svg|png|jpg|jpeg|gif|ico))",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.css)",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/css"
-        },
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"

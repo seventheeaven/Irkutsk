@@ -12,12 +12,46 @@
     <meta name="format-detection" content="telephone=no" />
     <title>Иркутск — Городской портал</title>
     <script>
-      // Проверка загрузки модулей
-      if ('noModule' in HTMLScriptElement.prototype) {
-        window.addEventListener('error', function(e) {
-          console.error('Error loading module:', e);
-        }, true);
+      // Логирование ошибок для диагностики
+      var errorCount = 0;
+      var maxErrors = 5;
+      
+      function showError(message) {
+        var root = document.getElementById('root');
+        if (root && errorCount < maxErrors) {
+          errorCount++;
+          root.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; text-align: center; background: #f9f5f2;"><div><p style="color: #111; margin-bottom: 10px; font-size: 18px; font-weight: 600;">Ошибка загрузки</p><p style="color: #666; font-size: 14px; margin-bottom: 20px;">' + (message || 'Неизвестная ошибка') + '</p><button onclick="location.reload()" style="padding: 12px 24px; background: #111; color: #fff; border: none; border-radius: 12px; font-size: 16px; cursor: pointer;">Обновить страницу</button></div></div>';
+        }
       }
+      
+      window.addEventListener('error', function(e) {
+        var errorMsg = 'Ошибка: ' + (e.message || 'Неизвестная ошибка');
+        if (e.filename) {
+          errorMsg += ' в ' + e.filename;
+        }
+        console.error('Global error:', e.error, e.message, e.filename, e.lineno);
+        
+        // Если ошибка загрузки скрипта - показываем пользователю
+        if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+          showError('Не удалось загрузить ресурс: ' + (e.target.src || e.target.href || 'неизвестно'));
+        } else if (!e.error) {
+          // Сетевые ошибки
+          showError('Проблема с загрузкой. Проверьте интернет-соединение.');
+        }
+      }, true);
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+        showError('Ошибка выполнения: ' + (e.reason?.message || String(e.reason)));
+      });
+      
+      // Таймаут загрузки
+      setTimeout(function() {
+        var root = document.getElementById('root');
+        if (root && root.innerHTML.includes('Загрузка...')) {
+          showError('Загрузка занимает слишком много времени. Проверьте интернет-соединение.');
+        }
+      }, 10000); // 10 секунд
     </script>
   </head>
   <body>
