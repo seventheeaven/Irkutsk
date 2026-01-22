@@ -63,27 +63,46 @@ module.exports = async function handler(req, res) {
 
     console.log('Sending email to:', normalizedEmail);
     
-    const emailResult = await resend.emails.send({
-      from: 'SYUDA <onboarding@resend.dev>',
-      to: [normalizedEmail],
-      subject: subject,
-      html: `
-        <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
-          <h2 style="margin:0 0 12px 0;">${subject}</h2>
-          <p style="margin:0 0 16px 0;">${description}</p>
-          <p style="margin:0 0 16px 0;">
-            <a href="${link}" style="display:inline-block;padding:12px 18px;background:#111;color:#fff;border-radius:12px;text-decoration:none;">
-              ${actionText}
-            </a>
-          </p>
-          <p style="margin:0;color:#888;font-size:12px;">Если вы не запрашивали ${isLogin ? 'вход' : 'регистрацию'} — просто проигнорируйте это письмо.</p>
-        </div>
-      `,
-    });
+    try {
+      const emailResult = await resend.emails.send({
+        from: 'SYUDA <onboarding@resend.dev>',
+        to: [normalizedEmail],
+        subject: subject,
+        html: `
+          <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
+            <h2 style="margin:0 0 12px 0;">${subject}</h2>
+            <p style="margin:0 0 16px 0;">${description}</p>
+            <p style="margin:0 0 16px 0;">
+              <a href="${link}" style="display:inline-block;padding:12px 18px;background:#111;color:#fff;border-radius:12px;text-decoration:none;">
+                ${actionText}
+              </a>
+            </p>
+            <p style="margin:0;color:#888;font-size:12px;">Если вы не запрашивали ${isLogin ? 'вход' : 'регистрацию'} — просто проигнорируйте это письмо.</p>
+          </div>
+        `,
+      });
 
-    console.log('Email sent result:', emailResult);
+      console.log('Email sent result:', emailResult);
 
-    res.status(200).json({ ok: true });
+      res.status(200).json({ ok: true });
+    } catch (emailError) {
+      console.error('Resend API error:', emailError);
+      console.error('Error details:', {
+        message: emailError?.message,
+        status: emailError?.status,
+        response: emailError?.response
+      });
+      
+      // Если это ошибка 403, даем более понятное сообщение
+      if (emailError?.status === 403 || emailError?.message?.includes('403')) {
+        res.status(403).json({ 
+          error: 'Ошибка отправки email. Проверьте настройки Resend API и убедитесь, что тестовый домен позволяет отправлять на указанный адрес.',
+          details: emailError?.message
+        });
+      } else {
+        throw emailError;
+      }
+    }
   } catch (e) {
     console.error('Magic link error:', e);
     const errorMessage = e?.message || 'Failed to send magic link';
