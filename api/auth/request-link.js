@@ -65,7 +65,7 @@ module.exports = async function handler(req, res) {
     
     const emailResult = await resend.emails.send({
       from: 'SYUDA <onboarding@resend.dev>',
-      to: normalizedEmail,
+      to: [normalizedEmail],
       subject: subject,
       html: `
         <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
