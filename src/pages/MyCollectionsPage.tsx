@@ -465,23 +465,63 @@ export const MyCollectionsPage = () => {
     setPublicationDescription('');
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setIsUploadingImage(true);
+      setError('');
+      
+      try {
+        // Конвертируем в base64 для отправки
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Image = reader.result as string;
+          
+          // Сразу показываем превью
+          setSelectedImage(base64Image);
+          
+          // Загружаем в Cloudinary
+          try {
+            const uploadResp = await fetch('/api/images/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: base64Image }),
+            });
+            
+            const uploadData = await uploadResp.json();
+            
+            if (!uploadResp.ok) {
+              throw new Error(uploadData?.error || 'Не удалось загрузить изображение');
+            }
+            
+            // Сохраняем URL от Cloudinary вместо base64
+            setSelectedImage(uploadData.url);
+            setIsUploadingImage(false);
+          } catch (uploadError) {
+            console.error('Image upload error:', uploadError);
+            setError('Не удалось загрузить изображение. Попробуйте еще раз.');
+            setSelectedImage(null);
+            setIsUploadingImage(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Image select error:', error);
+        setError('Не удалось обработать изображение');
+        setIsUploadingImage(false);
+      }
     }
   };
 
   const handlePublish = async () => {
-    if (publicationTitle.trim() && selectedImage && profile) {
+    if (publicationTitle.trim() && selectedImage && profile && !selectedImage.startsWith('data:')) {
+      // Проверяем, что изображение уже загружено в Cloudinary (не base64)
       const newCollection: Collection = {
         id: Date.now().toString(),
         name: publicationTitle.trim(),
-        imageUrls: [selectedImage],
+        imageUrls: [selectedImage], // Теперь это URL от Cloudinary
         itemCount: 1,
         userId: profile.email,
         authorName: profile.name,
@@ -500,6 +540,8 @@ export const MyCollectionsPage = () => {
       } else {
         setError('Не удалось опубликовать');
       }
+    } else if (selectedImage && selectedImage.startsWith('data:')) {
+      setError('Изображение еще загружается. Подождите...');
     }
   };
 
@@ -1155,12 +1197,32 @@ export const MyCollectionsPage = () => {
                 {selectedImage ? (
                   <div className="my-collections-page__modal-image-preview">
                     <img src={selectedImage} alt="Preview" />
-                    <button
-                      className="my-collections-page__modal-image-remove"
-                      onClick={() => setSelectedImage(null)}
-                    >
-                      ✕
-                    </button>
+                    {isUploadingImage && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        background: 'rgba(0, 0, 0, 0.7)',
+                        color: '#fff',
+                        padding: '12px 24px',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                      }}>
+                        Загрузка...
+                      </div>
+                    )}
+                    {!isUploadingImage && (
+                      <button
+                        className="my-collections-page__modal-image-remove"
+                        onClick={() => {
+                          setSelectedImage(null);
+                          setIsUploadingImage(false);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div 
@@ -1217,9 +1279,9 @@ export const MyCollectionsPage = () => {
               <button
                 className="my-collections-page__modal-publish"
                 onClick={handlePublish}
-                disabled={!publicationTitle.trim() || !selectedImage}
+                disabled={!publicationTitle.trim() || !selectedImage || isUploadingImage || (selectedImage && selectedImage.startsWith('data:'))}
               >
-                Опубликовать
+                {isUploadingImage ? 'Загрузка изображения...' : 'Опубликовать'}
               </button>
             </div>
           </div>
