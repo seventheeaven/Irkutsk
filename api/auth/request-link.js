@@ -1,5 +1,4 @@
 const { kv } = require('@vercel/kv');
-const { Resend } = require('resend');
 const crypto = require('crypto');
 
 function sha256(input) {
@@ -26,10 +25,11 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
+    // Используем Brevo (бывший Sendinblue) API
+    const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
-      console.error('RESEND_API_KEY is missing');
-      res.status(500).json({ error: 'Missing RESEND_API_KEY env var' });
+      console.error('BREVO_API_KEY is missing');
+      res.status(500).json({ error: 'Missing BREVO_API_KEY env var' });
       return;
     }
 
@@ -53,8 +53,6 @@ module.exports = async function handler(req, res) {
     const baseUrl = getBaseUrl(req);
     const link = `${baseUrl}/auth/callback?token=${encodeURIComponent(token)}`;
 
-    const resend = new Resend(apiKey);
-    
     const subject = isLogin ? 'Вход в SYUDA' : 'Регистрация в SYUDA';
     const actionText = isLogin ? 'Войти' : 'Зарегистрироваться';
     const description = isLogin 
@@ -63,12 +61,26 @@ module.exports = async function handler(req, res) {
 
     console.log('Sending email to:', normalizedEmail);
     
-    try {
-      const emailResult = await resend.emails.send({
-        from: 'SYUDA <onboarding@resend.dev>',
-        to: [normalizedEmail],
+    // Используем Brevo API (бывший Sendinblue)
+    const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': apiKey,
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'SYUDA',
+          email: 'noreply@syuda.app' // Можно использовать любой email, Brevo не требует подтверждения для тестовых отправок
+        },
+        to: [
+          {
+            email: normalizedEmail
+          }
+        ],
         subject: subject,
-        html: `
+        htmlContent: `
           <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
             <h2 style="margin:0 0 12px 0;">${subject}</h2>
             <p style="margin:0 0 16px 0;">${description}</p>
@@ -80,29 +92,18 @@ module.exports = async function handler(req, res) {
             <p style="margin:0;color:#888;font-size:12px;">Если вы не запрашивали ${isLogin ? 'вход' : 'регистрацию'} — просто проигнорируйте это письмо.</p>
           </div>
         `,
-      });
+      }),
+    });
 
-      console.log('Email sent result:', emailResult);
+    const brevoResult = await brevoResponse.json();
+    console.log('Brevo API response:', brevoResult);
 
-      res.status(200).json({ ok: true });
-    } catch (emailError) {
-      console.error('Resend API error:', emailError);
-      console.error('Error details:', {
-        message: emailError?.message,
-        status: emailError?.status,
-        response: emailError?.response
-      });
-      
-      // Если это ошибка 403, даем более понятное сообщение
-      if (emailError?.status === 403 || emailError?.message?.includes('403')) {
-        res.status(403).json({ 
-          error: 'Ошибка отправки email. Проверьте настройки Resend API и убедитесь, что тестовый домен позволяет отправлять на указанный адрес.',
-          details: emailError?.message
-        });
-      } else {
-        throw emailError;
-      }
+    if (!brevoResponse.ok) {
+      console.error('Brevo API error:', brevoResult);
+      throw new Error(brevoResult.message || 'Failed to send email via Brevo');
     }
+
+    res.status(200).json({ ok: true });
   } catch (e) {
     console.error('Magic link error:', e);
     const errorMessage = e?.message || 'Failed to send magic link';
