@@ -25,11 +25,11 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    // Используем Brevo (бывший Sendinblue) API
-    const apiKey = process.env.BREVO_API_KEY;
+    // Используем Resend API
+    const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.error('BREVO_API_KEY is missing');
-      res.status(500).json({ error: 'Missing BREVO_API_KEY env var' });
+      console.error('RESEND_API_KEY is missing');
+      res.status(500).json({ error: 'Missing RESEND_API_KEY env var' });
       return;
     }
 
@@ -61,26 +61,18 @@ module.exports = async function handler(req, res) {
 
     console.log('Sending email to:', normalizedEmail);
     
-    // Используем Brevo API (бывший Sendinblue)
-    const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+    // Используем Resend API
+    const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'api-key': apiKey,
       },
       body: JSON.stringify({
-        sender: {
-          name: 'SYUDA',
-          email: 'noreply@suydacity.ru' // Email отправителя с нового домена
-        },
-        to: [
-          {
-            email: normalizedEmail
-          }
-        ],
+        from: 'SYUDA <noreply@suydacity.ru>', // Email отправителя с нового домена
+        to: [normalizedEmail],
         subject: subject,
-        htmlContent: `
+        html: `
           <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
             <h2 style="margin:0 0 12px 0;">${subject}</h2>
             <p style="margin:0 0 16px 0;">${description}</p>
@@ -95,12 +87,12 @@ module.exports = async function handler(req, res) {
       }),
     });
 
-    const brevoResult = await brevoResponse.json();
-    console.log('Brevo API response:', brevoResult);
+    const resendResult = await resendResponse.json();
+    console.log('Resend API response:', resendResult);
 
-    if (!brevoResponse.ok) {
-      console.error('Brevo API error:', brevoResult);
-      throw new Error(brevoResult.message || 'Failed to send email via Brevo');
+    if (!resendResponse.ok) {
+      console.error('Resend API error:', resendResult);
+      throw new Error(resendResult.message || 'Failed to send email via Resend');
     }
 
     res.status(200).json({ ok: true });
