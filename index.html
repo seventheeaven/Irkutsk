@@ -8,10 +8,33 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Иркутск — Городской портал</title>
+    <script>
+      // Проверка загрузки модулей
+      if ('noModule' in HTMLScriptElement.prototype) {
+        window.addEventListener('error', function(e) {
+          console.error('Error loading module:', e);
+        }, true);
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+        <div style="text-align: center;">
+          <p>Загрузка...</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+        <div style="text-align: center;">
+          <p>Для работы приложения необходимо включить JavaScript.</p>
+        </div>
+      </div>
+    </noscript>
   </body>
 </html>
