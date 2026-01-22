@@ -36,6 +36,8 @@ module.exports = async function handler(req, res) {
     // Нормализуем email (нижний регистр, без пробелов)
     const normalizedEmail = email.toLowerCase().trim();
     
+    console.log('Request received:', { originalEmail: email, normalizedEmail, mode });
+    
     // Определяем режим (login или register)
     const isLogin = mode === 'login';
     
@@ -59,9 +61,11 @@ module.exports = async function handler(req, res) {
       ? 'Нажмите на кнопку ниже, чтобы войти в свой аккаунт. Ссылка действует 15 минут.'
       : 'Нажмите на кнопку ниже, чтобы завершить регистрацию. Ссылка действует 15 минут.';
 
-    await resend.emails.send({
+    console.log('Sending email to:', normalizedEmail);
+    
+    const emailResult = await resend.emails.send({
       from: 'SYUDA <onboarding@resend.dev>',
-      to: [normalizedEmail],
+      to: normalizedEmail,
       subject: subject,
       html: `
         <div style="font-family: -apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial,sans-serif; line-height: 1.5;">
@@ -76,6 +80,8 @@ module.exports = async function handler(req, res) {
         </div>
       `,
     });
+
+    console.log('Email sent result:', emailResult);
 
     res.status(200).json({ ok: true });
   } catch (e) {
