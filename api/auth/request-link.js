@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         sender: {
           name: 'SYUDA',
-          email: 'noreply@syuda.app' // Можно использовать любой email, Brevo не требует подтверждения для тестовых отправок
+          email: 'noreply@suydacity.ru' // Email отправителя с нового домена
         },
         to: [
           {
