@@ -20,19 +20,44 @@ export const AuthCallbackPage = () => {
     (async () => {
       try {
         console.log('AuthCallbackPage: Verifying token...');
-        // Проверяем токен
+        // Проверяем токен с retry логикой
         let resp;
-        try {
-          resp = await fetch('/api/auth/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token }),
-          });
-        } catch (fetchError) {
-          console.error('AuthCallbackPage: Fetch error', fetchError);
-          setError('Не удалось подключиться к серверу. Проверьте интернет-соединение и попробуйте снова.');
-          setStatus('error');
-          return;
+        let lastError;
+        const maxRetries = 3;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`AuthCallbackPage: Attempt ${attempt}/${maxRetries}`);
+            resp = await fetch('/api/auth/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token }),
+              signal: AbortSignal.timeout(10000), // 10 секунд таймаут
+            });
+            break; // Успешно, выходим из цикла
+          } catch (fetchError) {
+            lastError = fetchError;
+            console.error(`AuthCallbackPage: Fetch error (attempt ${attempt}/${maxRetries})`, fetchError);
+            
+            if (attempt < maxRetries) {
+              // Ждем перед повтором (экспоненциальная задержка)
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+              continue;
+            } else {
+              // Все попытки исчерпаны
+              let errorMsg = 'Не удалось подключиться к серверу.';
+              if (fetchError instanceof Error) {
+                if (fetchError.name === 'TimeoutError' || fetchError.message.includes('timeout')) {
+                  errorMsg = 'Превышено время ожидания. Проверьте интернет-соединение.';
+                } else if (fetchError.message.includes('network') || fetchError.message.includes('fetch')) {
+                  errorMsg = 'Проблема с сетью. Проверьте интернет-соединение.';
+                }
+              }
+              setError(errorMsg);
+              setStatus('error');
+              return;
+            }
+          }
         }
         
         let data;
