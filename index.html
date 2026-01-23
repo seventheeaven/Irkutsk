@@ -10,11 +10,28 @@
     <div id="root"><p style="margin:0;padding:1em;text-align:center;color:#000;font-size:18px">Загрузка…</p></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      setTimeout(function(){
-        var r=document.getElementById('root');
-        if(r&&r.childNodes.length<2&&r.textContent.indexOf('Загрузка')!==-1)
-          r.innerHTML='<p style="padding:1em;text-align:center;color:#000">Не удалось загрузить. <a href="">Обновить</a></p>';
-      },10000);
+      (function(){
+        function ok(t){var r=document.getElementById('root');if(r&&r.textContent.indexOf('Загрузка')!==-1)r.innerHTML=t;}
+        setTimeout(function(){
+          var s=document.querySelector('script[type=module][src*="/assets/"]');
+          if(s&&s.src){
+            fetch(s.src,{cache:'no-store'}).then(function(r){
+              if(!r.ok){ok('<p style="padding:1em;text-align:center;color:#c00">Скрипт: HTTP '+r.status+'</p>');return;}
+              return r.text();
+            }).then(function(t){
+              if(!t)return;
+              var u=t.trim();
+              if(u.substring(0,15).toLowerCase().indexOf('<!doctype')>=0||u.substring(0,5)==='<html'||(u[0]==='<'&&u[1]==='!'))
+                ok('<p style="padding:1em;text-align:center;color:#c00">Сервер отдаёт HTML вместо JS. Путь /assets/ перехватывается.</p>');
+            }).catch(function(){});
+          }
+        },2000);
+        setTimeout(function(){
+          var r=document.getElementById('root');
+          if(r&&r.childNodes.length<2&&r.textContent.indexOf('Загрузка')!==-1)
+            r.innerHTML='<p style="padding:1em;text-align:center;color:#000">Не удалось загрузить. <a href="">Обновить</a></p>';
+        },10000);
+      })();
     </script>
   </body>
 </html>
