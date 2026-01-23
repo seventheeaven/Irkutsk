@@ -24,9 +24,8 @@
   ],
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
-    {
-      "source": "/((?!api/)(?!assets/)(?!fonts/)(?!img/).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/fonts/:path*", "destination": "/fonts/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

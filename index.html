@@ -2,42 +2,19 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      (function(){if("serviceWorker"in navigator)navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister()})})})();
-    </script>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Иркутск — Городской портал</title>
   </head>
   <body>
-    <div id="root"><p style="text-align:center;padding:2em;color:#888;font-size:1em;">Загрузка…</p></div>
+    <div id="root"><p style="text-align:center;padding:2em;color:#333;font-size:16px;">Загрузка…</p></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      (function(){
-        var done=false;
-        function show(txt){
-          if(done)return;
-          var r=document.getElementById('root');
-          if(r&&r.textContent.indexOf('Загрузка')!==-1){ done=true; r.innerHTML=txt; }
-        }
-        setTimeout(function(){
-          var r=document.getElementById('root');
-          if(!r||r.childNodes.length>=2||r.textContent.indexOf('Загрузка')===-1)return;
-          var s=document.querySelector('script[type=module][src]');
-          if(s&&s.src){
-            fetch(s.src,{cache:'no-store'}).then(function(x){return x.text();}).then(function(t){
-              var u=t&&t.trim();
-              if(u&&(u.substring(0,20).toLowerCase().indexOf('<!doctype')>=0||u.substring(0,5)==='<html'||(u.charAt(0)==='<'&&u.charAt(1)==='!')))
-                show('<p style="padding:1.5em;text-align:center;color:#c00;">Вместо скрипта приходит HTML. Проверьте rewrites в vercel.json.</p>');
-            }).catch(function(){});
-          }
-        },2500);
-        setTimeout(function(){
-          var r=document.getElementById('root');
-          if(r&&r.childNodes.length<2&&r.textContent.indexOf('Загрузка')!==-1)
-            show('<p style="padding:1.5em;text-align:center;color:#666;">Не удалось загрузить.<br><a href="">Обновить</a> · инкогнито или другой браузер.</p>');
-        },10000);
-      })();
+      setTimeout(function(){
+        var r=document.getElementById('root');
+        if(r&&r.childNodes.length<2&&r.textContent.indexOf('Загрузка')!==-1)
+          r.innerHTML='<p style="padding:1.5em;text-align:center;color:#666;">Не удалось загрузить.<br><a href="">Обновить</a></p>';
+      },10000);
     </script>
   </body>
 </html>
