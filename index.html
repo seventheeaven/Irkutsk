@@ -33,9 +33,11 @@
               console.log('All scripts loaded in', Date.now() - loadStartTime, 'ms');
             }
           });
-          script.addEventListener('error', function() {
-            console.error('Script failed to load:', script.src);
-            showError('Не удалось загрузить: ' + script.src.split('/').pop());
+          script.addEventListener('error', function(e) {
+            console.error('Script failed to load:', script.src, e);
+            var errorMsg = 'Не удалось загрузить: ' + script.src.split('/').pop();
+            errorMsg += '\n\nПопробуйте:\n1. Проверить интернет-соединение\n2. Обновить страницу\n3. Очистить кеш браузера';
+            showError(errorMsg);
           });
         });
       });
