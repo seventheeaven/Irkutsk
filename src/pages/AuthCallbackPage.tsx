@@ -28,12 +28,18 @@ export const AuthCallbackPage = () => {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {
             console.log(`AuthCallbackPage: Attempt ${attempt}/${maxRetries}`);
+            // Создаем AbortController для таймаута
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 секунд
+            
             resp = await fetch('/api/auth/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ token }),
-              signal: AbortSignal.timeout(10000), // 10 секунд таймаут
+              signal: controller.signal,
             });
+            
+            clearTimeout(timeoutId);
             break; // Успешно, выходим из цикла
           } catch (fetchError) {
             lastError = fetchError;
