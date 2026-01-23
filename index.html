@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Иркутск — Городской портал</title>
   </head>
-  <body>
-    <div id="root"><p style="text-align:center;padding:2em;color:#333;font-size:16px;">Загрузка…</p></div>
+  <body style="background:#d0d0d0;margin:0;min-height:100vh;font-family:sans-serif">
+    <p style="margin:0;padding:1em;background:#fff;color:#000;font-size:18px;text-align:center">Загрузка…</p>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       setTimeout(function(){
         var r=document.getElementById('root');
-        if(r&&r.childNodes.length<2&&r.textContent.indexOf('Загрузка')!==-1)
-          r.innerHTML='<p style="padding:1.5em;text-align:center;color:#666;">Не удалось загрузить.<br><a href="">Обновить</a></p>';
+        if(r&&!r.hasChildNodes()){
+          var p=document.querySelector('body > p');
+          if(p)p.innerHTML='Не удалось загрузить. <a href="">Обновить</a>';
+        }
       },10000);
     </script>
   </body>
