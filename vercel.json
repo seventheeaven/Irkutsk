@@ -6,8 +6,12 @@
   "framework": "vite",
   "headers": [
     {
-      "source": "/assets/:path*",
+      "source": "/assets/:path*.js",
       "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
@@ -19,10 +23,23 @@
         {
           "key": "Access-Control-Allow-Methods",
           "value": "GET, HEAD, OPTIONS"
+        }
+      ]
+    },
+    {
+      "source": "/assets/:path*.css",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/css; charset=utf-8"
         },
         {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         }
       ]
     },
