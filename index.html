@@ -83,13 +83,27 @@
         showError('Ошибка выполнения: ' + (e.reason?.message || String(e.reason)));
       });
       
+      // Проверка доступности API
+      fetch('/api/mobile-test')
+        .then(r => r.json())
+        .then(data => {
+          console.log('API test successful:', data);
+        })
+        .catch(err => {
+          console.error('API test failed:', err);
+          showError('Проблема с подключением к серверу: ' + err.message);
+        });
+      
       // Таймаут загрузки
       setTimeout(function() {
         var root = document.getElementById('root');
         if (root && root.innerHTML.includes('Загрузка...')) {
           console.warn('Load timeout after', Date.now() - loadStartTime, 'ms');
           console.warn('Scripts loaded:', scriptsLoaded + '/' + scriptsTotal);
-          showError('Загрузка занимает слишком много времени. Загружено: ' + scriptsLoaded + '/' + scriptsTotal);
+          var diagnosticInfo = 'Загрузка: ' + scriptsLoaded + '/' + scriptsTotal + ' скриптов. ';
+          diagnosticInfo += 'Время: ' + Math.round((Date.now() - loadStartTime) / 1000) + ' сек. ';
+          diagnosticInfo += 'UA: ' + navigator.userAgent.substring(0, 30);
+          showError('Загрузка занимает слишком много времени. ' + diagnosticInfo);
         }
       }, 15000); // 15 секунд
     </script>

@@ -2,7 +2,8 @@
 // Для использования нужен API ключ от OpenAI: https://platform.openai.com/api-keys
 // Добавьте VITE_OPENAI_API_KEY в .env файл
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+// Безопасное получение переменной окружения
+const OPENAI_API_KEY = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_OPENAI_API_KEY : undefined;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 export interface Recommendation {
@@ -152,6 +153,7 @@ const getFallbackRecommendations = (query: string): Recommendation[] => {
 
   return allRecommendations.slice(0, 6);
 };
+
 
 
 

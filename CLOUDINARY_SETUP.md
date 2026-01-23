@@ -18,21 +18,36 @@
 ## Шаг 3: Добавление переменных окружения в Vercel
 
 1. Зайди в Vercel → твой проект → **Settings** → **Environment Variables**
-2. Добавь следующие переменные:
+2. У тебя есть два варианта:
+
+### Вариант 1: Использовать CLOUDINARY_URL (проще)
+
+1. В Cloudinary Dashboard скопируй **API environment variable** (полная строка вида `CLOUDINARY_URL=cloudinary://...`)
+2. В Vercel добавь переменную:
+   - **Name**: `CLOUDINARY_URL`
+   - **Value**: скопированная строка (без `CLOUDINARY_URL=`, только `cloudinary://...`)
+   - **Environment**: Production, Preview, Development (выбери все)
+3. Нажми "Save"
+
+### Вариант 2: Использовать отдельные переменные
+
+Добавь три переменные:
 
    - **Name**: `CLOUDINARY_CLOUD_NAME`
-   - **Value**: твой Cloud Name из Cloudinary
+   - **Value**: `dojojozli` (твой Cloud Name)
    - **Environment**: Production, Preview, Development (выбери все)
 
    - **Name**: `CLOUDINARY_API_KEY`
-   - **Value**: твой API Key из Cloudinary
+   - **Value**: `231429224618582` (твой API Key)
    - **Environment**: Production, Preview, Development (выбери все)
 
    - **Name**: `CLOUDINARY_API_SECRET`
-   - **Value**: твой API Secret из Cloudinary
+   - **Value**: твой API Secret (нажми на иконку глаза в Cloudinary, чтобы увидеть)
    - **Environment**: Production, Preview, Development (выбери все)
 
 3. Нажми "Save" для каждой переменной
+
+**Рекомендация:** Используй Вариант 1 (CLOUDINARY_URL) - это проще и надежнее.
 
 ## Шаг 4: Перезапуск деплоя
 

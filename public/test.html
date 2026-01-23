@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            background: #f9f5f2;
+        }
+        .test {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест подключения</h1>
+    
+    <div class="test">
+        <h2>Тест 1: API Endpoint</h2>
+        <button onclick="testAPI()">Проверить API</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h2>Тест 2: Простой Fetch</h2>
+        <button onclick="testFetch()">Проверить Fetch</button>
+        <div id="fetchResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h2>Информация о браузере</h2>
+        <div class="result" id="browserInfo"></div>
+    </div>
+    
+    <script>
+        // Информация о браузере
+        document.getElementById('browserInfo').textContent = 
+            'User Agent: ' + navigator.userAgent + '\n' +
+            'Platform: ' + navigator.platform + '\n' +
+            'Language: ' + navigator.language + '\n' +
+            'Online: ' + navigator.onLine;
+        
+        async function testAPI() {
+            const result = document.getElementById('apiResult');
+            result.textContent = 'Загрузка...';
+            
+            try {
+                const start = Date.now();
+                const response = await fetch('/api/mobile-test', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const end = Date.now();
+                const data = await response.json();
+                
+                result.textContent = 
+                    'Статус: ' + response.status + '\n' +
+                    'Время: ' + (end - start) + 'ms\n' +
+                    'Ответ: ' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = 'Ошибка: ' + error.message + '\n' + error.stack;
+            }
+        }
+        
+        async function testFetch() {
+            const result = document.getElementById('fetchResult');
+            result.textContent = 'Загрузка...';
+            
+            try {
+                const start = Date.now();
+                const response = await fetch('/api/test');
+                const end = Date.now();
+                const text = await response.text();
+                
+                result.textContent = 
+                    'Статус: ' + response.status + '\n' +
+                    'Время: ' + (end - start) + 'ms\n' +
+                    'Ответ: ' + text;
+            } catch (error) {
+                result.textContent = 'Ошибка: ' + error.message + '\n' + error.stack;
+            }
+        }
+    </script>
+</body>
+</html>
+
+

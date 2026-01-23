@@ -18,7 +18,9 @@ export default defineConfig({
         chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]'
       }
-    }
+    },
+    // Увеличиваем размер предупреждений для больших чанков
+    chunkSizeWarningLimit: 1000
   }
 })
 

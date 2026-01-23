@@ -61,14 +61,20 @@ export const RecommendationsPage = () => {
       } catch (error) {
         console.error('Error loading publications:', error);
         // Fallback на localStorage для обратной совместимости
-        const allPublications = localStorage.getItem('allPublications');
-        if (allPublications) {
+        if (typeof localStorage !== 'undefined') {
           try {
-            const pubs: Publication[] = JSON.parse(allPublications);
-            pubs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            setPublications(pubs);
+            const allPublications = localStorage.getItem('allPublications');
+            if (allPublications) {
+              try {
+                const pubs: Publication[] = JSON.parse(allPublications);
+                pubs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                setPublications(pubs);
+              } catch (e) {
+                console.error('Error loading from localStorage:', e);
+              }
+            }
           } catch (e) {
-            console.error('Error loading from localStorage:', e);
+            console.error('Error accessing localStorage:', e);
           }
         }
       }
@@ -79,14 +85,23 @@ export const RecommendationsPage = () => {
 
   // Загружаем лайки из localStorage
   useEffect(() => {
-    const savedLikes = localStorage.getItem('likedItems');
-    if (savedLikes) {
-      try {
-        const likedIds = JSON.parse(savedLikes);
-        setLikedItems(new Set(likedIds));
-      } catch (error) {
-        console.error('Error loading likes:', error);
+    // Проверяем доступность localStorage
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    try {
+      const savedLikes = localStorage.getItem('likedItems');
+      if (savedLikes) {
+        try {
+          const likedIds = JSON.parse(savedLikes);
+          setLikedItems(new Set(likedIds));
+        } catch (error) {
+          console.error('Error loading likes:', error);
+        }
       }
+    } catch (e) {
+      console.error('Error accessing localStorage:', e);
     }
   }, []);
   
@@ -154,46 +169,60 @@ export const RecommendationsPage = () => {
   const handleLikeClick = useCallback((itemId: string, imageUrl: string, description: string, title?: string, address?: string) => {
     const newLikedItems = new Set(likedItems);
     
+    // Проверяем доступность localStorage
+    if (typeof localStorage === 'undefined') {
+      setLikedItems(newLikedItems);
+      return;
+    }
+
     if (newLikedItems.has(itemId)) {
       // Удаляем из лайков
       newLikedItems.delete(itemId);
-      const savedLikes = localStorage.getItem('likedItems');
-      if (savedLikes) {
-        try {
-          const likedIds: string[] = JSON.parse(savedLikes);
-          const updatedLikes = likedIds.filter(id => id !== itemId);
-          localStorage.setItem('likedItems', JSON.stringify(updatedLikes));
-          
-          // Удаляем из детальной информации
-          const savedLikedItems = localStorage.getItem('likedItemsDetails');
-          if (savedLikedItems) {
-            const likedItemsDetails: LikedItem[] = JSON.parse(savedLikedItems);
-            const updatedDetails = likedItemsDetails.filter(item => item.id !== itemId);
-            localStorage.setItem('likedItemsDetails', JSON.stringify(updatedDetails));
+      try {
+        const savedLikes = localStorage.getItem('likedItems');
+        if (savedLikes) {
+          try {
+            const likedIds: string[] = JSON.parse(savedLikes);
+            const updatedLikes = likedIds.filter(id => id !== itemId);
+            localStorage.setItem('likedItems', JSON.stringify(updatedLikes));
+            
+            // Удаляем из детальной информации
+            const savedLikedItems = localStorage.getItem('likedItemsDetails');
+            if (savedLikedItems) {
+              const likedItemsDetails: LikedItem[] = JSON.parse(savedLikedItems);
+              const updatedDetails = likedItemsDetails.filter(item => item.id !== itemId);
+              localStorage.setItem('likedItemsDetails', JSON.stringify(updatedDetails));
+            }
+          } catch (error) {
+            console.error('Error removing like:', error);
           }
-        } catch (error) {
-          console.error('Error removing like:', error);
         }
+      } catch (e) {
+        console.error('Error accessing localStorage:', e);
       }
     } else {
       // Добавляем в лайки
       newLikedItems.add(itemId);
-      const savedLikes = localStorage.getItem('likedItems');
-      const likedIds: string[] = savedLikes ? JSON.parse(savedLikes) : [];
-      likedIds.push(itemId);
-      localStorage.setItem('likedItems', JSON.stringify(likedIds));
-      
-      // Сохраняем детальную информацию
-      const savedLikedItems = localStorage.getItem('likedItemsDetails');
-      const likedItemsDetails: LikedItem[] = savedLikedItems ? JSON.parse(savedLikedItems) : [];
-      likedItemsDetails.push({
-        id: itemId,
-        imageUrl,
-        description,
-        title,
-        address
-      });
-      localStorage.setItem('likedItemsDetails', JSON.stringify(likedItemsDetails));
+      try {
+        const savedLikes = localStorage.getItem('likedItems');
+        const likedIds: string[] = savedLikes ? JSON.parse(savedLikes) : [];
+        likedIds.push(itemId);
+        localStorage.setItem('likedItems', JSON.stringify(likedIds));
+        
+        // Сохраняем детальную информацию
+        const savedLikedItems = localStorage.getItem('likedItemsDetails');
+        const likedItemsDetails: LikedItem[] = savedLikedItems ? JSON.parse(savedLikedItems) : [];
+        likedItemsDetails.push({
+          id: itemId,
+          imageUrl,
+          description,
+          title,
+          address
+        });
+        localStorage.setItem('likedItemsDetails', JSON.stringify(likedItemsDetails));
+      } catch (e) {
+        console.error('Error accessing localStorage:', e);
+      }
     }
     
     setLikedItems(newLikedItems);

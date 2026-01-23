@@ -1,5 +1,5 @@
 import './Categories.css';
-import bakeryImage from '../../img/пекарни.png';
+import bakeryImage from '../../img/bakery.png';
 
 const categoryLabels = [
   'Для вечерней встречи',

@@ -69,7 +69,7 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'SYUDA <noreply@suydacity.ru>', // Email отправителя с нового домена
+        from: 'SYUDA <noreply@suydacity.ru>', // Верифицированный домен
         to: [normalizedEmail],
         subject: subject,
         html: `

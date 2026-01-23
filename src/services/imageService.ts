@@ -4,7 +4,8 @@
 
 // Демо-ключ для тестирования (ограничен: 50 запросов/час)
 // Для продакшена получите свой ключ на https://unsplash.com/developers
-const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY || 'YOUR_UNSPLASH_ACCESS_KEY';
+// Безопасное получение переменной окружения
+const UNSPLASH_ACCESS_KEY = (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_UNSPLASH_ACCESS_KEY : undefined) || 'YOUR_UNSPLASH_ACCESS_KEY';
 const UNSPLASH_API_URL = 'https://api.unsplash.com';
 
 // Альтернатива: использовать прямые ссылки на Unsplash без API (ограниченно)

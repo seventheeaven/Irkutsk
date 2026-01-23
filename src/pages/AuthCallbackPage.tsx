@@ -73,8 +73,20 @@ export const AuthCallbackPage = () => {
         } else {
           // Новый пользователь - сохраняем email в sessionStorage и перенаправляем на настройку профиля
           console.log('AuthCallbackPage: New user, redirecting to profile setup');
-          sessionStorage.setItem('pendingEmail', userEmail);
-          document.cookie = `pendingEmail=${userEmail}; path=/; max-age=${60 * 60}; SameSite=Lax`;
+          if (typeof sessionStorage !== 'undefined') {
+            try {
+              sessionStorage.setItem('pendingEmail', userEmail);
+            } catch (e) {
+              console.error('Error saving to sessionStorage:', e);
+            }
+          }
+          if (typeof document !== 'undefined') {
+            try {
+              document.cookie = `pendingEmail=${userEmail}; path=/; max-age=${60 * 60}; SameSite=Lax`;
+            } catch (e) {
+              console.error('Error setting cookie:', e);
+            }
+          }
           
           setStatus('success');
           

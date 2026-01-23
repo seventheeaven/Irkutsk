@@ -23,20 +23,38 @@ module.exports = async function handler(req, res) {
     // Нормализуем email
     const normalizedEmail = email.toLowerCase().trim();
     
+    console.log('Login attempt:', { email: normalizedEmail, passwordLength: password?.length });
+    
     // Получаем профиль пользователя
     const profile = await kv.get(`user:${normalizedEmail}`);
     
     if (!profile) {
+      console.log('Login failed: Profile not found', { email: normalizedEmail });
       res.status(401).json({ error: 'Неверный email или пароль' });
       return;
     }
 
     // Проверяем пароль
     const passwordHash = sha256(password);
-    if (profile.passwordHash !== passwordHash) {
+    console.log('Password check:', { 
+      providedHash: passwordHash.substring(0, 10) + '...',
+      storedHash: profile.passwordHash?.substring(0, 10) + '...',
+      match: profile.passwordHash === passwordHash
+    });
+    
+    if (!profile.passwordHash) {
+      console.log('Login failed: No password hash in profile');
       res.status(401).json({ error: 'Неверный email или пароль' });
       return;
     }
+    
+    if (profile.passwordHash !== passwordHash) {
+      console.log('Login failed: Password hash mismatch');
+      res.status(401).json({ error: 'Неверный email или пароль' });
+      return;
+    }
+    
+    console.log('Login successful:', { email: normalizedEmail });
 
     // Возвращаем профиль (без пароля)
     const { passwordHash: _, ...profileWithoutPassword } = profile;

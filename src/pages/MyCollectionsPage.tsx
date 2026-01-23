@@ -156,19 +156,35 @@ export const MyCollectionsPage = () => {
 
   // Проверяем cookies для восстановления сессии (приоритет над localStorage)
   useEffect(() => {
+    // Проверяем доступность API
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
     const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
+      try {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return null;
+      } catch (e) {
+        console.error('Error reading cookie:', e);
+        return null;
+      }
     };
 
     // Проверяем, не был ли выполнен выход (проверяем флаг в sessionStorage)
-    const wasLoggedOut = sessionStorage.getItem('loggedOut');
-    if (wasLoggedOut === 'true') {
-      sessionStorage.removeItem('loggedOut');
-      setHasProfile(false);
-      return;
+    if (typeof sessionStorage !== 'undefined') {
+      try {
+        const wasLoggedOut = sessionStorage.getItem('loggedOut');
+        if (wasLoggedOut === 'true') {
+          sessionStorage.removeItem('loggedOut');
+          setHasProfile(false);
+          return;
+        }
+      } catch (e) {
+        console.error('Error accessing sessionStorage:', e);
+      }
     }
 
     const userEmail = getCookie('userEmail');
@@ -178,35 +194,54 @@ export const MyCollectionsPage = () => {
         if (kvProfile) {
           setProfile(kvProfile);
           setHasProfile(true);
-          localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+          if (typeof localStorage !== 'undefined') {
+            try {
+              localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+            } catch (e) {
+              console.error('Error saving to localStorage:', e);
+            }
+          }
           return; // Не проверяем localStorage если нашли в cookies
         }
       })();
     } else {
       // Если нет cookies, проверяем localStorage (для обратной совместимости)
-      const savedProfile = localStorage.getItem('userProfile');
-      if (savedProfile) {
+      if (typeof localStorage !== 'undefined') {
         try {
-          const profileData: UserProfile = JSON.parse(savedProfile);
-          if (profileData.email) {
-            (async () => {
-              const kvProfile = await loadUserProfile(profileData.email!);
-              if (kvProfile) {
-                setProfile(kvProfile);
-                setHasProfile(true);
-                localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+          const savedProfile = localStorage.getItem('userProfile');
+          if (savedProfile) {
+            try {
+              const profileData: UserProfile = JSON.parse(savedProfile);
+              if (profileData.email) {
+                (async () => {
+                  const kvProfile = await loadUserProfile(profileData.email!);
+                  if (kvProfile) {
+                    setProfile(kvProfile);
+                    setHasProfile(true);
+                    try {
+                      localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+                    } catch (e) {
+                      console.error('Error saving to localStorage:', e);
+                    }
+                  } else {
+                    // Если профиля нет в KV, но есть в localStorage, используем его
+                    setProfile(profileData);
+                    setHasProfile(true);
+                  }
+                })();
               } else {
-                // Если профиля нет в KV, но есть в localStorage, используем его
                 setProfile(profileData);
                 setHasProfile(true);
               }
-            })();
+            } catch (error) {
+              console.error('Error loading profile:', error);
+              setHasProfile(false);
+            }
           } else {
-            setProfile(profileData);
-            setHasProfile(true);
+            setHasProfile(false);
           }
-        } catch (error) {
-          console.error('Error loading profile:', error);
+        } catch (e) {
+          console.error('Error accessing localStorage:', e);
           setHasProfile(false);
         }
       } else {
@@ -217,35 +252,78 @@ export const MyCollectionsPage = () => {
 
   // Проверяем setup=profile для настройки профиля нового пользователя
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const setup = params.get('setup');
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
-    };
+    // Проверяем доступность API
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
 
-    if (setup === 'profile') {
-      const pendingEmail = getCookie('pendingEmail') || sessionStorage.getItem('pendingEmail');
-      if (pendingEmail) {
-        setVerifiedEmail(pendingEmail);
-        setAuthStep('profileSetup');
-        const usernameBase = pendingEmail.split('@')[0] || 'user';
-        setProfileUsername(`@${usernameBase}`);
-        // Очищаем URL
-        window.history.replaceState({}, document.title, window.location.pathname);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const setup = params.get('setup');
+      const getCookie = (name: string) => {
+        try {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop()?.split(';').shift();
+          return null;
+        } catch (e) {
+          console.error('Error reading cookie:', e);
+          return null;
+        }
+      };
+
+      if (setup === 'profile') {
+        let pendingEmail: string | null = null;
+        try {
+          pendingEmail = getCookie('pendingEmail');
+        } catch (e) {
+          console.error('Error getting cookie:', e);
+        }
+        
+        if (!pendingEmail && typeof sessionStorage !== 'undefined') {
+          try {
+            pendingEmail = sessionStorage.getItem('pendingEmail');
+          } catch (e) {
+            console.error('Error accessing sessionStorage:', e);
+          }
+        }
+
+        if (pendingEmail) {
+          setVerifiedEmail(pendingEmail);
+          setAuthStep('profileSetup');
+          const usernameBase = pendingEmail.split('@')[0] || 'user';
+          setProfileUsername(`@${usernameBase}`);
+          // Очищаем URL
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (e) {
+            console.error('Error updating history:', e);
+          }
+        }
       }
+    } catch (e) {
+      console.error('Error in setup=profile effect:', e);
     }
   }, []);
 
   // Сначала проверяем токен, если он есть в URL (старая логика для обратной совместимости)
   useEffect(() => {
+    // Проверяем доступность API
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Если токен уже проверен, не проверяем повторно
     if (tokenVerifiedRef.current) return;
 
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    let token: string | null = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      token = params.get('token');
+    } catch (e) {
+      console.error('Error reading URL params:', e);
+      return;
+    }
     
     // Если токена нет, не делаем ничего (профиль уже загружен через cookies/localStorage выше)
     if (!token) {
@@ -277,14 +355,26 @@ export const MyCollectionsPage = () => {
         setVerifiedEmail(userEmail);
 
         // Чистим URL сразу после успешной проверки
-        window.history.replaceState({}, document.title, window.location.pathname);
+        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (e) {
+            console.error('Error updating history:', e);
+          }
+        }
 
         // Проверяем, есть ли уже профиль для этого email в KV
         const existingProfile = await loadUserProfile(userEmail);
 
         if (existingProfile) {
           // Пользователь уже зарегистрирован - логиним сразу
-          localStorage.setItem('userProfile', JSON.stringify(existingProfile));
+          if (typeof localStorage !== 'undefined') {
+            try {
+              localStorage.setItem('userProfile', JSON.stringify(existingProfile));
+            } catch (e) {
+              console.error('Error saving to localStorage:', e);
+            }
+          }
           setProfile(existingProfile);
           setHasProfile(true);
         } else {
@@ -352,48 +442,80 @@ export const MyCollectionsPage = () => {
   };
 
   useEffect(() => {
+    // Проверяем доступность window
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     let ticking = false;
 
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          
-          if (currentScrollY < 10) {
-            setIsTabbarVisible(true);
-          } else if (currentScrollY > lastScrollYRef.current) {
-            setIsTabbarVisible(false);
-          } else if (currentScrollY < lastScrollYRef.current) {
-            setIsTabbarVisible(true);
+      if (!ticking && typeof window !== 'undefined') {
+        const raf = window.requestAnimationFrame || ((cb: () => void) => setTimeout(cb, 16));
+        raf(() => {
+          try {
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY < 10) {
+              setIsTabbarVisible(true);
+            } else if (currentScrollY > lastScrollYRef.current) {
+              setIsTabbarVisible(false);
+            } else if (currentScrollY < lastScrollYRef.current) {
+              setIsTabbarVisible(true);
+            }
+            
+            lastScrollYRef.current = currentScrollY;
+            ticking = false;
+          } catch (e) {
+            console.error('Error in scroll handler:', e);
+            ticking = false;
           }
-          
-          lastScrollYRef.current = currentScrollY;
-          ticking = false;
         });
         
         ticking = true;
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    try {
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    } catch (e) {
+      console.error('Error adding scroll listener:', e);
+    }
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      if (typeof window !== 'undefined') {
+        try {
+          window.removeEventListener('scroll', handleScroll);
+        } catch (e) {
+          console.error('Error removing scroll listener:', e);
+        }
+      }
     };
   }, []);
 
   // Загружаем лайки из localStorage
   useEffect(() => {
+    // Проверяем доступность API
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return;
+    }
+
     const loadLikes = () => {
-      const savedLikedItems = localStorage.getItem('likedItemsDetails');
-      if (savedLikedItems) {
-        try {
-          const items: LikedItem[] = JSON.parse(savedLikedItems);
-          setLikedItems(items);
-        } catch (error) {
-          console.error('Error loading liked items:', error);
+      try {
+        const savedLikedItems = localStorage.getItem('likedItemsDetails');
+        if (savedLikedItems) {
+          try {
+            const items: LikedItem[] = JSON.parse(savedLikedItems);
+            setLikedItems(items);
+          } catch (error) {
+            console.error('Error loading liked items:', error);
+            setLikedItems([]);
+          }
+        } else {
+          setLikedItems([]);
         }
-      } else {
+      } catch (e) {
+        console.error('Error accessing localStorage:', e);
         setLikedItems([]);
       }
     };
@@ -412,8 +534,12 @@ export const MyCollectionsPage = () => {
       }
     };
     
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleFocus);
+    try {
+      window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('focus', handleFocus);
+    } catch (e) {
+      console.error('Error adding event listeners:', e);
+    }
     
     // Также проверяем при изменении activeTab
     if (activeTab === 'likes') {
@@ -421,8 +547,14 @@ export const MyCollectionsPage = () => {
     }
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
+      if (typeof window !== 'undefined') {
+        try {
+          window.removeEventListener('storage', handleStorageChange);
+          window.removeEventListener('focus', handleFocus);
+        } catch (e) {
+          console.error('Error removing event listeners:', e);
+        }
+      }
     };
   }, [activeTab]);
 
@@ -638,10 +770,22 @@ export const MyCollectionsPage = () => {
       const { passwordHash: _, ...profileWithoutPassword } = newProfile;
       
       // Сохраняем в localStorage для обратной совместимости
-      localStorage.setItem('userProfile', JSON.stringify(profileWithoutPassword));
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('userProfile', JSON.stringify(profileWithoutPassword));
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }
       
       // Сохраняем в cookies для синхронизации между браузерами (используем нормализованный email)
-      document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      if (typeof document !== 'undefined') {
+        try {
+          document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+        } catch (e) {
+          console.error('Error setting cookie:', e);
+        }
+      }
       
       setProfile(profileWithoutPassword);
       setHasProfile(true);
@@ -724,10 +868,22 @@ export const MyCollectionsPage = () => {
       const profile = data.profile;
       
       // Сохраняем в localStorage
-      localStorage.setItem('userProfile', JSON.stringify(profile));
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('userProfile', JSON.stringify(profile));
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }
       
       // Сохраняем в cookies
-      document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      if (typeof document !== 'undefined') {
+        try {
+          document.cookie = `userEmail=${normalizedEmail}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+        } catch (e) {
+          console.error('Error setting cookie:', e);
+        }
+      }
       
       setProfile(profile);
       setHasProfile(true);

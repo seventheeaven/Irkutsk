@@ -23,41 +23,54 @@ export const SettingsPage = () => {
 
   // Загружаем профиль из KV
   useEffect(() => {
+    // Проверяем доступность localStorage
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
     const loadProfile = async () => {
       // Сначала проверяем localStorage для обратной совместимости
-      const savedProfile = localStorage.getItem('userProfile');
-      if (savedProfile) {
-        try {
-          const profileData: UserProfile = JSON.parse(savedProfile);
-          
-          // Если есть email, загружаем из KV
-          if (profileData.email) {
-            try {
-              const resp = await fetch(`/api/users/profile?email=${encodeURIComponent(profileData.email)}`);
-              const data = await resp.json();
-              if (resp.ok && data.profile) {
-                const kvProfile = data.profile;
-                setName(kvProfile.name || '');
-                setUsername(kvProfile.username || '');
-                setDescription(kvProfile.description || '');
-                setAvatar(kvProfile.avatar || null);
-                // Обновляем localStorage
-                localStorage.setItem('userProfile', JSON.stringify(kvProfile));
-                return;
+      try {
+        const savedProfile = localStorage.getItem('userProfile');
+        if (savedProfile) {
+          try {
+            const profileData: UserProfile = JSON.parse(savedProfile);
+            
+            // Если есть email, загружаем из KV
+            if (profileData.email) {
+              try {
+                const resp = await fetch(`/api/users/profile?email=${encodeURIComponent(profileData.email)}`);
+                const data = await resp.json();
+                if (resp.ok && data.profile) {
+                  const kvProfile = data.profile;
+                  setName(kvProfile.name || '');
+                  setUsername(kvProfile.username || '');
+                  setDescription(kvProfile.description || '');
+                  setAvatar(kvProfile.avatar || null);
+                  // Обновляем localStorage
+                  try {
+                    localStorage.setItem('userProfile', JSON.stringify(kvProfile));
+                  } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                  }
+                  return;
+                }
+              } catch (error) {
+                console.error('Error loading profile from KV:', error);
               }
-            } catch (error) {
-              console.error('Error loading profile from KV:', error);
             }
+            
+            // Если не удалось загрузить из KV, используем localStorage
+            setName(profileData.name || '');
+            setUsername(profileData.username || '');
+            setDescription(profileData.description || '');
+            setAvatar(profileData.avatar || null);
+          } catch (error) {
+            console.error('Error loading profile:', error);
           }
-          
-          // Если не удалось загрузить из KV, используем localStorage
-          setName(profileData.name || '');
-          setUsername(profileData.username || '');
-          setDescription(profileData.description || '');
-          setAvatar(profileData.avatar || null);
-        } catch (error) {
-          console.error('Error loading profile:', error);
         }
+      } catch (e) {
+        console.error('Error accessing localStorage:', e);
       }
     };
     
@@ -66,13 +79,20 @@ export const SettingsPage = () => {
 
   // Получаем текущий профиль
   const getCurrentProfile = (): UserProfile | null => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      try {
-        return JSON.parse(savedProfile);
-      } catch {
-        return null;
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
+    try {
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        try {
+          return JSON.parse(savedProfile);
+        } catch {
+          return null;
+        }
       }
+    } catch (e) {
+      console.error('Error accessing localStorage:', e);
     }
     return null;
   };
@@ -160,7 +180,13 @@ export const SettingsPage = () => {
       }
       
       // Также обновляем localStorage для обратной совместимости
-      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }
       
       navigate(-1);
     } catch (error) {
