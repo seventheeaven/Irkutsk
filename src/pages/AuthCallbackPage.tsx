@@ -21,13 +21,30 @@ export const AuthCallbackPage = () => {
       try {
         console.log('AuthCallbackPage: Verifying token...');
         // Проверяем токен
-        const resp = await fetch('/api/auth/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
+        let resp;
+        try {
+          resp = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token }),
+          });
+        } catch (fetchError) {
+          console.error('AuthCallbackPage: Fetch error', fetchError);
+          setError('Не удалось подключиться к серверу. Проверьте интернет-соединение и попробуйте снова.');
+          setStatus('error');
+          return;
+        }
         
-        const data = await resp.json();
+        let data;
+        try {
+          data = await resp.json();
+        } catch (jsonError) {
+          console.error('AuthCallbackPage: JSON parse error', jsonError);
+          setError('Ошибка при обработке ответа сервера. Попробуйте снова.');
+          setStatus('error');
+          return;
+        }
+        
         console.log('AuthCallbackPage: Verify response', { ok: resp.ok, data });
         
         if (!resp.ok) {
@@ -96,7 +113,15 @@ export const AuthCallbackPage = () => {
         }
       } catch (e) {
         console.error('Error during token verification:', e);
-        setError(`Не удалось войти по ссылке: ${e instanceof Error ? e.message : 'Неизвестная ошибка'}`);
+        let errorMessage = 'Не удалось войти по ссылке';
+        if (e instanceof Error) {
+          if (e.message.includes('fetch') || e.message.includes('network') || e.message.includes('Load failed')) {
+            errorMessage = 'Проблема с подключением. Проверьте интернет и попробуйте снова.';
+          } else {
+            errorMessage = `Не удалось войти по ссылке: ${e.message}`;
+          }
+        }
+        setError(errorMessage);
         setStatus('error');
       }
     })();
