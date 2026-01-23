@@ -22,10 +22,9 @@ export const Sidebar = ({ isVisible = true }: SidebarProps) => {
   const isActive = useCallback((path: string) => currentPath === path, [currentPath]);
 
   const handleClick = useCallback(() => {
-    // Легкая вибрация при переключении (10ms - короткая и мягкая)
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) (navigator as { vibrate?: (n: number) => boolean }).vibrate?.(10);
+    } catch (_) { /* vibrate не поддерживается на iOS */ }
   }, []);
 
   const isHomeActive = useMemo(() => isActive('/'), [isActive]);

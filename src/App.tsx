@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MenuProvider } from './contexts/MenuContext';
 import { Sidebar } from './components/Sidebar';
 import { HomePage } from './pages/HomePage';
@@ -8,6 +8,21 @@ import { MyCollectionsPage } from './pages/MyCollectionsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import './App.css';
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err: string | null }> {
+  state = { err: null as string | null };
+  static getDerivedStateFromError(e: unknown) {
+    return { err: e instanceof Error ? e.message : String(e) };
+  }
+  componentDidCatch(e: unknown) {
+    this.setState({ err: e instanceof Error ? e.message + (e.stack || '') : String(e) });
+  }
+  render() {
+    if (this.state.err)
+      return <p style={{ padding: '1em', color: '#c00', wordBreak: 'break-all' }}>Ошибка: {this.state.err}</p>;
+    return this.props.children;
+  }
+}
 
 function AppContent() {
   const [isTabbarVisible, setIsTabbarVisible] = useState(true);
@@ -65,9 +80,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppContent />
+      </Router>
+    </ErrorBoundary>
   );
 }
 
