@@ -21,8 +21,7 @@ export const AuthCallbackPage = () => {
       try {
         console.log('AuthCallbackPage: Verifying token...');
         // Проверяем токен с retry логикой
-        let resp;
-        let lastError;
+        let resp: Response | undefined;
         const maxRetries = 3;
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -42,7 +41,6 @@ export const AuthCallbackPage = () => {
             clearTimeout(timeoutId);
             break; // Успешно, выходим из цикла
           } catch (fetchError) {
-            lastError = fetchError;
             console.error(`AuthCallbackPage: Fetch error (attempt ${attempt}/${maxRetries})`, fetchError);
             
             if (attempt < maxRetries) {
@@ -64,6 +62,12 @@ export const AuthCallbackPage = () => {
               return;
             }
           }
+        }
+        
+        if (!resp) {
+          setError('Не удалось подключиться к серверу после нескольких попыток.');
+          setStatus('error');
+          return;
         }
         
         let data;
