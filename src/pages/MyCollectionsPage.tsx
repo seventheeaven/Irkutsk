@@ -275,14 +275,16 @@ export const MyCollectionsPage = () => {
       if (setup === 'profile') {
         let pendingEmail: string | null = null;
         try {
-          pendingEmail = getCookie('pendingEmail');
+          const cookieValue = getCookie('pendingEmail');
+          pendingEmail = cookieValue || null;
         } catch (e) {
           console.error('Error getting cookie:', e);
         }
         
         if (!pendingEmail && typeof sessionStorage !== 'undefined') {
           try {
-            pendingEmail = sessionStorage.getItem('pendingEmail');
+            const storageValue = sessionStorage.getItem('pendingEmail');
+            pendingEmail = storageValue || null;
           } catch (e) {
             console.error('Error accessing sessionStorage:', e);
           }
@@ -1435,7 +1437,7 @@ export const MyCollectionsPage = () => {
               <button
                 className="my-collections-page__modal-publish"
                 onClick={handlePublish}
-                disabled={!publicationTitle.trim() || !selectedImage || isUploadingImage || (selectedImage && selectedImage.startsWith('data:'))}
+                disabled={Boolean(!publicationTitle.trim() || !selectedImage || isUploadingImage || (selectedImage && selectedImage.startsWith('data:')))}
               >
                 {isUploadingImage ? 'Загрузка изображения...' : 'Опубликовать'}
               </button>
