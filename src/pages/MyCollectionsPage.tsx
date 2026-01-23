@@ -867,7 +867,14 @@ export const MyCollectionsPage = () => {
       console.log('handleLogin: Response', { ok: resp.ok, data });
       
       if (!resp.ok) {
-        setError(data?.error || 'Неверный email или пароль');
+        const errorMsg = data?.error || 'Неверный email или пароль';
+        setError(errorMsg);
+        
+        // Если у пользователя нет пароля, предлагаем использовать magic link
+        if (data?.needsPassword) {
+          setError('Для этого аккаунта не установлен пароль. Пожалуйста, используйте вход по ссылке из email.');
+        }
+        
         setIsLoggingIn(false);
         return;
       }

@@ -59,8 +59,11 @@ module.exports = async function handler(req, res) {
     });
     
     if (!profile.passwordHash) {
-      console.log('Login failed: No password hash in profile');
-      res.status(401).json({ error: 'Неверный email или пароль' });
+      console.log('Login failed: No password hash in profile - user registered via magic link without password');
+      res.status(401).json({ 
+        error: 'Для этого аккаунта не установлен пароль. Используйте вход по ссылке из email или установите пароль в настройках профиля.',
+        needsPassword: true
+      });
       return;
     }
     
