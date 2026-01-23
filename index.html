@@ -84,14 +84,17 @@
       });
       
       // Проверка доступности API
-      fetch('/api/mobile-test')
-        .then(r => r.json())
-        .then(data => {
-          console.log('API test successful:', data);
+      fetch('/api/publications/list')
+        .then(r => {
+          if (r.ok) {
+            console.log('API test successful');
+          } else {
+            console.warn('API returned status:', r.status);
+          }
         })
         .catch(err => {
           console.error('API test failed:', err);
-          showError('Проблема с подключением к серверу: ' + err.message);
+          // Не показываем ошибку пользователю, это не критично
         });
       
       // Таймаут загрузки

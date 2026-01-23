@@ -6,11 +6,19 @@
   "framework": "vite",
   "headers": [
     {
-      "source": "/assets/:path*",
+      "source": "/assets/:path*.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
         }
       ]
     },
@@ -49,6 +57,10 @@
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"
+    },
+    {
+      "source": "/assets/:path*",
+      "destination": "/assets/:path*"
     },
     {
       "source": "/:path*",
