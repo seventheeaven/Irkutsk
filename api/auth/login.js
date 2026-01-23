@@ -23,7 +23,12 @@ module.exports = async function handler(req, res) {
     // Нормализуем email
     const normalizedEmail = email.toLowerCase().trim();
     
-    console.log('Login attempt:', { email: normalizedEmail, passwordLength: password?.length });
+    console.log('Login attempt:', { 
+      originalEmail: email, 
+      normalizedEmail, 
+      passwordLength: password?.length,
+      passwordPreview: password ? password.substring(0, 3) + '...' : 'empty'
+    });
     
     // Получаем профиль пользователя
     const profile = await kv.get(`user:${normalizedEmail}`);
@@ -34,12 +39,23 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    console.log('Profile found:', {
+      email: profile.email,
+      hasPasswordHash: !!profile.passwordHash,
+      passwordHashLength: profile.passwordHash?.length,
+      passwordHashPreview: profile.passwordHash ? profile.passwordHash.substring(0, 20) + '...' : 'none'
+    });
+
     // Проверяем пароль
     const passwordHash = sha256(password);
     console.log('Password check:', { 
-      providedHash: passwordHash.substring(0, 10) + '...',
-      storedHash: profile.passwordHash?.substring(0, 10) + '...',
-      match: profile.passwordHash === passwordHash
+      providedHash: passwordHash.substring(0, 20) + '...',
+      storedHash: profile.passwordHash?.substring(0, 20) + '...',
+      fullMatch: profile.passwordHash === passwordHash,
+      hashLengths: {
+        provided: passwordHash.length,
+        stored: profile.passwordHash?.length
+      }
     });
     
     if (!profile.passwordHash) {

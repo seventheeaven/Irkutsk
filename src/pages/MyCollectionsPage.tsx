@@ -851,6 +851,12 @@ export const MyCollectionsPage = () => {
 
     try {
       const normalizedEmail = email.toLowerCase().trim();
+      console.log('handleLogin: Sending request', { 
+        email: normalizedEmail, 
+        passwordLength: loginPassword.length,
+        passwordPreview: loginPassword.substring(0, 3) + '...'
+      });
+      
       const resp = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
