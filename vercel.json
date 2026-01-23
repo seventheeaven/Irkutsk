@@ -2,66 +2,13 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "headers": [
-    {
-      "source": "/assets/:path*",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        }
-      ]
-    },
-    {
-      "source": "/assets/:path*.css",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/css"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
     {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/recommendations",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/my-collections",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/settings",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/auth/:path*",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
