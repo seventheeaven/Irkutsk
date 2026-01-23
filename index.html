@@ -10,7 +10,15 @@
     <title>Иркутск — Городской портал</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p style="text-align:center;padding:2em;color:#888;font-size:1em;">Загрузка…</p></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      setTimeout(function(){
+        var r=document.getElementById('root');
+        if(!r||r.childNodes.length<2&&r&&r.textContent.indexOf('Загрузка')!==-1){
+          if(r)r.innerHTML='<p style="padding:1.5em;text-align:center;color:#666;">Не удалось загрузить.<br><a href="">Обновить</a> · попробуйте режим инкогнито или другой браузер.</p>';
+        }
+      },10000);
+    </script>
   </body>
 </html>
